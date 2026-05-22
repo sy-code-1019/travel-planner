@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -461,7 +461,24 @@ function EditPlanForm({ plan }: { plan: Plan }) {
 
 export default function EditPlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const plan = getPlans().find((p) => p.id === id)
+  const [plan, setPlan] = useState<Plan | null>(null)
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    const found = getPlans().find((p) => p.id === id) ?? null
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlan(found)
+
+    setLoaded(true)
+  }, [id])
+
+  if (!loaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
+      </div>
+    )
+  }
 
   if (!plan) {
     return (
