@@ -1,6 +1,10 @@
-import type { Plan, PlanInput } from '@/types/plan'
+import type { Plan, PlannedPlan, ExploringPlan } from '@/types/plan'
 
 const STORAGE_KEY = 'travel-planner:plans'
+
+export type PlanInput =
+  | Omit<PlannedPlan, 'id' | 'createdAt'>
+  | Omit<ExploringPlan, 'id' | 'createdAt'>
 
 export function getPlans(): Plan[] {
   if (typeof window === 'undefined') return []
@@ -9,11 +13,11 @@ export function getPlans(): Plan[] {
 }
 
 export function savePlan(input: PlanInput): Plan {
-  const plan: Plan = {
+  const plan = {
     ...input,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
-  }
+  } as Plan
   const plans = getPlans()
   localStorage.setItem(STORAGE_KEY, JSON.stringify([plan, ...plans]))
   return plan
