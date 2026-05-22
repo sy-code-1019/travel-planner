@@ -481,9 +481,9 @@ export function getRecommendations(
   prefecture: string,
   purposes: TravelPurpose[]
 ): RecommendedSpot[] {
-  // 都道府県名（「県」「都」「府」を除いたキー）で検索
-  const key = prefecture.replace(/[都道府県]$/, '')
-  const all = RECOMMENDATIONS[key] ?? []
+  // フルネーム → 末尾の都道府県を除いたキーの順で検索
+  const all =
+    RECOMMENDATIONS[prefecture] ?? RECOMMENDATIONS[prefecture.replace(/[都道府県]$/, '')] ?? []
   if (purposes.length === 0) return all
   // 選んだ目的に一致するスポットを優先表示
   const matched = all.filter((s) => s.purposes.some((p) => purposes.includes(p)))
