@@ -23,6 +23,11 @@ export function savePlan(input: PlanInput): Plan {
   return plan
 }
 
+export function updatePlan(updated: Plan): void {
+  const plans = getPlans().map((p) => (p.id === updated.id ? updated : p))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(plans))
+}
+
 export function deletePlan(id: string): void {
   const plans = getPlans().filter((p) => p.id !== id)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(plans))

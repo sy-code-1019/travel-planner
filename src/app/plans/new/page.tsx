@@ -102,6 +102,8 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 export default function NewPlanPage() {
   const router = useRouter()
 
+  const today = new Date().toISOString().split('T')[0]
+
   const [step, setStep] = useState(0)
   const [title, setTitle] = useState('')
   const [mode, setMode] = useState<TravelMode | null>(null)
@@ -124,6 +126,10 @@ export default function NewPlanPage() {
 
   function confirmDates() {
     if (!departureDate || !returnDate) return
+    if (departureDate < today) {
+      setDateError('出発日は今日以降にしてください')
+      return
+    }
     if (returnDate < departureDate) {
       setDateError('帰宅日は出発日より後にしてください')
       return
@@ -285,6 +291,7 @@ export default function NewPlanPage() {
                 <input
                   type="date"
                   value={departureDate}
+                  min={today}
                   onChange={(e) => setDepartureDate(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
@@ -305,6 +312,7 @@ export default function NewPlanPage() {
                 <input
                   type="date"
                   value={returnDate}
+                  min={departureDate || today}
                   onChange={(e) => setReturnDate(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
@@ -424,10 +432,7 @@ export default function NewPlanPage() {
               {DURATIONS.map((d) => (
                 <button
                   key={d}
-                  onClick={() => {
-                    setDuration(d)
-                    setStep(3)
-                  }}
+                  onClick={() => setDuration(d)}
                   className={`w-full rounded-xl px-4 py-3 text-left font-medium border-2 transition-all ${
                     duration === d
                       ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
@@ -438,6 +443,13 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
+            <button
+              disabled={!duration}
+              onClick={() => setStep(3)}
+              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+            >
+              次へ <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         )}
 
@@ -449,10 +461,7 @@ export default function NewPlanPage() {
               {MONTHS.map((m) => (
                 <button
                   key={m}
-                  onClick={() => {
-                    setDepMonth(m)
-                    setStep(4)
-                  }}
+                  onClick={() => setDepMonth(m)}
                   className={`rounded-xl py-3 text-sm font-medium border-2 transition-all ${
                     depMonth === m
                       ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
@@ -463,6 +472,13 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
+            <button
+              disabled={!depMonth}
+              onClick={() => setStep(4)}
+              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+            >
+              次へ <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         )}
 

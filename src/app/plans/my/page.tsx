@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Compass,
   ClipboardList,
+  AlertTriangle,
 } from 'lucide-react'
 import { getPlans, deletePlan } from '@/lib/storage'
 import type { Plan, PlannedPlan, ExploringPlan } from '@/types/plan'
@@ -25,6 +26,47 @@ function formatDate(dateStr: string) {
 function calcNights(start: string, end: string) {
   const diff = (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
   return diff > 0 ? `${diff}泊${diff + 1}日` : '日帰り'
+}
+
+function DeleteModal({
+  planTitle,
+  onConfirm,
+  onCancel,
+}: {
+  planTitle: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
+      <div className="relative rounded-2xl bg-white p-6 shadow-xl max-w-sm w-full space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 rounded-full bg-red-100 p-2">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+          </div>
+          <h2 className="text-base font-bold text-gray-800">プランを削除しますか？</h2>
+        </div>
+        <p className="text-sm text-gray-500">
+          「{planTitle}」を削除します。この操作は取り消せません。
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 transition-colors"
+          >
+            削除する
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function PlannedCard({ plan, onDelete }: { plan: PlannedPlan; onDelete: () => void }) {
@@ -110,15 +152,25 @@ function ExploringCard({ plan, onDelete }: { plan: ExploringPlan; onDelete: () =
 
 export default function MyPlansPage() {
   const [plans, setPlans] = useState<Plan[]>(() => getPlans())
+  const [deleteTarget, setDeleteTarget] = useState<Plan | null>(null)
 
-  function handleDelete(id: string) {
-    if (!confirm('このプランを削除しますか？')) return
-    deletePlan(id)
+  function handleDeleteConfirm() {
+    if (!deleteTarget) return
+    deletePlan(deleteTarget.id)
     setPlans(getPlans())
+    setDeleteTarget(null)
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
+      {deleteTarget && (
+        <DeleteModal
+          planTitle={deleteTarget.title}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -157,9 +209,9 @@ export default function MyPlansPage() {
           <ul className="space-y-4">
             {plans.map((plan) =>
               plan.mode === 'planned' ? (
-                <PlannedCard key={plan.id} plan={plan} onDelete={() => handleDelete(plan.id)} />
+                <PlannedCard key={plan.id} plan={plan} onDelete={() => setDeleteTarget(plan)} />
               ) : (
-                <ExploringCard key={plan.id} plan={plan} onDelete={() => handleDelete(plan.id)} />
+                <ExploringCard key={plan.id} plan={plan} onDelete={() => setDeleteTarget(plan)} />
               )
             )}
           </ul>
