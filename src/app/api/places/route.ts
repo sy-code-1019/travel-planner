@@ -19,6 +19,22 @@ interface GooglePlace {
   types?: string[]
 }
 
+async function geocodePrefecture(
+  prefecture: string,
+  apiKey: string
+): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(prefecture + '日本')}&language=ja&key=${apiKey}`
+    const res = await fetch(url)
+    const data = (await res.json()) as {
+      results?: { geometry: { location: { lat: number; lng: number } } }[]
+    }
+    return data.results?.[0]?.geometry?.location ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const prefecture = searchParams.get('prefecture') ?? ''
@@ -29,16 +45,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
   }
 
+  // 都道府県の中心座標を取得して検索エリアを地理的に絞り込む
+  const location = await geocodePrefecture(prefecture, apiKey)
+  const locationParam = location ? `&location=${location.lat},${location.lng}&radius=150000` : ''
+
+  // locationが取れた場合はクエリから都道府県名を除く（名前一致の誤ヒットを防ぐ）
+  const buildQuery = (keyword: string) => (location ? keyword : `${prefecture} ${keyword}`)
+
   const queries =
     purposes.length > 0
-      ? purposes.map((p) => `${prefecture} ${PURPOSE_KEYWORDS[p] ?? p}`)
-      : [`${prefecture} 観光スポット`]
+      ? purposes.map((p) => buildQuery(PURPOSE_KEYWORDS[p] ?? p))
+      : [buildQuery('観光スポット')]
 
   const allResults: GooglePlace[] = []
 
   for (const query of queries) {
     try {
-      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=ja&key=${apiKey}`
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=ja${locationParam}&key=${apiKey}`
       const res = await fetch(url)
       const data = (await res.json()) as { results?: GooglePlace[] }
       allResults.push(...(data.results ?? []))
@@ -55,13 +78,22 @@ export async function GET(request: Request) {
     return true
   })
 
+  // formatted_addressに都道府県名が含まれるもののみ残す（locationがある場合）
+  const prefShort = prefecture.replace(/[都道府県]$/, '')
+  const inPrefecture = location
+    ? unique.filter((p) => {
+        const addr = (p.formatted_address ?? p.vicinity ?? '').replace(/〒\d{3}-\d{4}\s*/, '')
+        return addr.includes(prefecture) || addr.includes(prefShort)
+      })
+    : unique
+
   // 評価3以上でフィルタしてスコア順にソート
-  const spots = unique
+  const spots = inPrefecture
     .filter((p) => (p.rating ?? 0) >= 3)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .map((p) => ({
       name: p.name,
-      description: p.vicinity ?? p.formatted_address ?? '',
+      description: p.formatted_address ?? p.vicinity ?? '',
       rating: p.rating ?? 0,
       ratingsTotal: p.user_ratings_total ?? 0,
     }))
