@@ -2,9 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, PlusCircle, Trash2, CalendarDays, Train } from 'lucide-react'
+import {
+  ArrowLeft,
+  MapPin,
+  PlusCircle,
+  Trash2,
+  CalendarDays,
+  Compass,
+  ClipboardList,
+} from 'lucide-react'
 import { getPlans, deletePlan } from '@/lib/storage'
-import type { Plan } from '@/types/plan'
+import type { Plan, PlannedPlan, ExploringPlan } from '@/types/plan'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ja-JP', {
@@ -19,8 +27,88 @@ function calcNights(start: string, end: string) {
   return diff > 0 ? `${diff}泊${diff + 1}日` : '日帰り'
 }
 
+function PlannedCard({ plan, onDelete }: { plan: PlannedPlan; onDelete: () => void }) {
+  return (
+    <li className="rounded-2xl bg-white p-5 shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600 flex items-center gap-1">
+              <ClipboardList className="h-3 w-3" /> しおりあり
+            </span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 truncate">{plan.title}</h2>
+          <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-4 w-4" />
+              {formatDate(plan.departureDate)}
+              {plan.departureTime && ` ${plan.departureTime}発`}
+              　〜
+              {formatDate(plan.returnDate)}
+              {plan.returnTime && ` ${plan.returnTime}着`}
+            </span>
+          </div>
+          <span className="mt-1 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+            {calcNights(plan.departureDate, plan.returnDate)} / {plan.itinerary.length}日間
+          </span>
+        </div>
+        <button
+          onClick={onDelete}
+          className="rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0"
+          aria-label="削除"
+        >
+          <Trash2 className="h-5 w-5" />
+        </button>
+      </div>
+    </li>
+  )
+}
+
+function ExploringCard({ plan, onDelete }: { plan: ExploringPlan; onDelete: () => void }) {
+  return (
+    <li className="rounded-2xl bg-white p-5 shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <Compass className="h-3 w-3" /> 探索中
+            </span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 truncate">{plan.title}</h2>
+          <p className="mt-1 flex items-center gap-1 text-sm text-emerald-600 font-medium">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            {plan.prefecture}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+              {plan.duration}
+            </span>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+              {plan.departureMonth}ごろ
+            </span>
+            {plan.purposes.map((p) => (
+              <span
+                key={p}
+                className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={onDelete}
+          className="rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0"
+          aria-label="削除"
+        >
+          <Trash2 className="h-5 w-5" />
+        </button>
+      </div>
+    </li>
+  )
+}
+
 export default function MyPlansPage() {
-  // lazy initializer でマウント時に一度だけ localStorage から読み込む
   const [plans, setPlans] = useState<Plan[]>(() => getPlans())
 
   function handleDelete(id: string) {
@@ -31,7 +119,6 @@ export default function MyPlansPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
-      {/* ヘッダー */}
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -68,42 +155,13 @@ export default function MyPlansPage() {
           </div>
         ) : (
           <ul className="space-y-4">
-            {plans.map((plan) => (
-              <li key={plan.id} className="rounded-2xl bg-white p-5 shadow-md">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold text-gray-800 truncate">{plan.title}</h2>
-                    <p className="mt-0.5 flex items-center gap-1 text-blue-600 font-medium">
-                      <MapPin className="h-4 w-4 flex-shrink-0" />
-                      {plan.destination}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="h-4 w-4" />
-                        {formatDate(plan.startDate)} 〜 {formatDate(plan.endDate)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Train className="h-4 w-4" />
-                        {plan.transportation}
-                      </span>
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-600 text-xs font-medium">
-                        {calcNights(plan.startDate, plan.endDate)}
-                      </span>
-                    </div>
-                    {plan.notes && (
-                      <p className="mt-2 text-sm text-gray-500 line-clamp-2">{plan.notes}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDelete(plan.id)}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0"
-                    aria-label="削除"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
-              </li>
-            ))}
+            {plans.map((plan) =>
+              plan.mode === 'planned' ? (
+                <PlannedCard key={plan.id} plan={plan} onDelete={() => handleDelete(plan.id)} />
+              ) : (
+                <ExploringCard key={plan.id} plan={plan} onDelete={() => handleDelete(plan.id)} />
+              )
+            )}
           </ul>
         )}
       </main>
