@@ -3,19 +3,18 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   MapPin,
   Star,
   BookOpen,
   RotateCcw,
-  Plus,
-  Check,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
-import { getPlans, updatePlan } from '@/lib/storage'
-import type { TravelPurpose, PlannedPlan, Spot } from '@/types/plan'
+import type { TravelPurpose } from '@/types/plan'
 
 const PAGE_SIZE = 15
 
@@ -44,116 +43,9 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-function AddToPlanModal({ spotName, onClose }: { spotName: string; onClose: () => void }) {
-  const [plans] = useState<PlannedPlan[]>(() =>
-    getPlans().filter((p): p is PlannedPlan => p.mode === 'planned')
-  )
-  const [selectedPlanId, setSelectedPlanId] = useState(plans[0]?.id ?? '')
-  const [selectedDayIdx, setSelectedDayIdx] = useState(0)
-  const [done, setDone] = useState(false)
-
-  const selectedPlan = plans.find((p) => p.id === selectedPlanId)
-
-  function handleAdd() {
-    if (!selectedPlan) return
-    const newSpot: Spot = {
-      id: crypto.randomUUID(),
-      time: '',
-      place: spotName,
-      transportation: '',
-      memo: '',
-    }
-    const updated: PlannedPlan = {
-      ...selectedPlan,
-      itinerary: selectedPlan.itinerary.map((day, i) =>
-        i === selectedDayIdx ? { ...day, spots: [...day.spots, newSpot] } : day
-      ),
-    }
-    updatePlan(updated)
-    setDone(true)
-    setTimeout(onClose, 1000)
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative rounded-2xl bg-white p-6 shadow-xl w-full max-w-sm space-y-4">
-        <h2 className="text-base font-bold text-gray-800">しおりに追加</h2>
-        <p className="text-sm text-gray-500 truncate">「{spotName}」</p>
-
-        {plans.length === 0 ? (
-          <div className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
-            <p>日程が決まっているプランがありません</p>
-            <Link href="/plans/new" className="mt-2 inline-block text-blue-500 underline text-xs">
-              プランを作成する
-            </Link>
-          </div>
-        ) : done ? (
-          <div className="flex items-center justify-center gap-2 py-4 text-emerald-500 font-medium">
-            <Check className="h-5 w-5" /> 追加しました
-          </div>
-        ) : (
-          <>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">プランを選択</label>
-              <select
-                value={selectedPlanId}
-                onChange={(e) => {
-                  setSelectedPlanId(e.target.value)
-                  setSelectedDayIdx(0)
-                }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                {plans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {selectedPlan && selectedPlan.itinerary.length > 0 && (
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">日程を選択</label>
-                <select
-                  value={selectedDayIdx}
-                  onChange={(e) => setSelectedDayIdx(Number(e.target.value))}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  {selectedPlan.itinerary.map((day, i) => (
-                    <option key={day.date} value={i}>
-                      Day {i + 1}　
-                      {new Date(day.date).toLocaleDateString('ja-JP', {
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={handleAdd}
-                className="flex-1 rounded-xl bg-blue-500 py-2.5 text-sm font-bold text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
-              >
-                <Plus className="h-4 w-4" /> 追加する
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function ResultContent() {
   const params = useSearchParams()
+  const router = useRouter()
   const prefecture = params.get('prefecture') ?? ''
   const purposes = (params.get('purposes') ?? '').split(',').filter(Boolean) as TravelPurpose[]
 
@@ -161,7 +53,6 @@ function ResultContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(0)
-  const [addTarget, setAddTarget] = useState<string | null>(null)
 
   const totalPages = Math.ceil(spots.length / PAGE_SIZE)
   const pageSpots = spots.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -185,10 +76,12 @@ function ResultContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefecture])
 
+  function handleSelect(spotName: string) {
+    router.push('/plans/new?spot=' + encodeURIComponent(spotName))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
-      {addTarget && <AddToPlanModal spotName={addTarget} onClose={() => setAddTarget(null)} />}
-
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-3">
           <Link href="/plans" className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors">
@@ -253,10 +146,13 @@ function ResultContent() {
                 <p className="text-sm text-gray-500 px-1">
                   {spots.length}件のスポットが見つかりました（評価3以上・評価順）
                 </p>
+                <p className="text-xs text-blue-500 px-1">
+                  スポットを選択するとしおり作成に進みます
+                </p>
                 <ul className="space-y-3">
                   {pageSpots.map((spot, i) => (
                     <li key={i} className="rounded-2xl bg-white p-5 shadow-md">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base font-bold text-gray-800">{spot.name}</h3>
                           {spot.description && (
@@ -274,10 +170,11 @@ function ResultContent() {
                           </div>
                         </div>
                         <button
-                          onClick={() => setAddTarget(spot.name)}
-                          className="flex-shrink-0 rounded-lg border border-blue-300 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-1"
+                          onClick={() => handleSelect(spot.name)}
+                          className="flex-shrink-0 rounded-xl bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 transition-colors flex items-center gap-1.5"
                         >
-                          <Plus className="h-3.5 w-3.5" /> 追加
+                          <ClipboardList className="h-4 w-4" />
+                          選択
                         </button>
                       </div>
                     </li>
