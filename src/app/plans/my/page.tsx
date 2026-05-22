@@ -2,7 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, PlusCircle, Trash2, CalendarDays, AlertTriangle } from 'lucide-react'
+import {
+  ArrowLeft,
+  MapPin,
+  PlusCircle,
+  Trash2,
+  CalendarDays,
+  AlertTriangle,
+  Pencil,
+} from 'lucide-react'
 import { getPlans, deletePlan } from '@/lib/storage'
 import type { Plan } from '@/types/plan'
 
@@ -80,13 +88,22 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
             {calcNights(plan.departureDate, plan.returnDate)} / {plan.itinerary.length}日間
           </span>
         </div>
-        <button
-          onClick={onDelete}
-          className="rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0"
-          aria-label="削除"
-        >
-          <Trash2 className="h-5 w-5" />
-        </button>
+        <div className="flex flex-col gap-1 flex-shrink-0">
+          <Link
+            href={`/plans/${plan.id}/edit`}
+            className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+            aria-label="編集"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={onDelete}
+            className="rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
+            aria-label="削除"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </li>
   )
