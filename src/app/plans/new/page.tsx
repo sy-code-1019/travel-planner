@@ -443,13 +443,21 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
-            <button
-              disabled={!duration}
-              onClick={() => setStep(3)}
-              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
-            >
-              次へ <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setStep(1)}
+                className="rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> 戻る
+              </button>
+              <button
+                disabled={!duration}
+                onClick={() => setStep(3)}
+                className="rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              >
+                次へ <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -472,13 +480,21 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
-            <button
-              disabled={!depMonth}
-              onClick={() => setStep(4)}
-              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
-            >
-              次へ <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setStep(2)}
+                className="rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> 戻る
+              </button>
+              <button
+                disabled={!depMonth}
+                onClick={() => setStep(4)}
+                className="rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              >
+                次へ <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -505,6 +521,12 @@ export default function NewPlanPage() {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={() => setStep(3)}
+                className="w-full rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> 戻る
+              </button>
             </div>
             {region && (
               <div className="rounded-2xl bg-white p-6 shadow-md space-y-3">
@@ -563,13 +585,21 @@ export default function NewPlanPage() {
                 )
               })}
             </div>
-            <button
-              disabled={purposes.length === 0}
-              onClick={() => setStep(6)}
-              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
-            >
-              次へ <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setStep(4)}
+                className="rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> 戻る
+              </button>
+              <button
+                disabled={purposes.length === 0}
+                onClick={() => setStep(6)}
+                className="rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              >
+                次へ <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -593,13 +623,21 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
-            <button
-              disabled={!mainTransport}
-              onClick={handleSaveExploring}
-              className="w-full rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
-            >
-              <CheckCircle2 className="h-5 w-5" /> おすすめを見る
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setStep(5)}
+                className="rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> 戻る
+              </button>
+              <button
+                disabled={!mainTransport}
+                onClick={handleSaveExploring}
+                className="rounded-xl bg-emerald-500 py-3 font-bold text-white hover:bg-emerald-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="h-5 w-5" /> おすすめを見る
+              </button>
+            </div>
           </div>
         )}
       </main>
