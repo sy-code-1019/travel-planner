@@ -1,23 +1,22 @@
-import type { Plan, PlannedPlan, ExploringPlan } from '@/types/plan'
+import type { Plan, PlannedPlan } from '@/types/plan'
 
 const STORAGE_KEY = 'travel-planner:plans'
 
-export type PlanInput =
-  | Omit<PlannedPlan, 'id' | 'createdAt'>
-  | Omit<ExploringPlan, 'id' | 'createdAt'>
+export type PlanInput = Omit<PlannedPlan, 'id' | 'createdAt'>
 
 export function getPlans(): Plan[] {
   if (typeof window === 'undefined') return []
   const data = localStorage.getItem(STORAGE_KEY)
-  return data ? (JSON.parse(data) as Plan[]) : []
+  const all = data ? (JSON.parse(data) as { mode?: string }[]) : []
+  return all.filter((p): p is Plan => p.mode === 'planned')
 }
 
 export function savePlan(input: PlanInput): Plan {
-  const plan = {
+  const plan: Plan = {
     ...input,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
-  } as Plan
+  }
   const plans = getPlans()
   localStorage.setItem(STORAGE_KEY, JSON.stringify([plan, ...plans]))
   return plan
