@@ -1,10 +1,9 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Clock, BookOpen } from 'lucide-react'
-import { getRecommendations } from '@/data/recommendations'
+import { ArrowLeft, MapPin, Star, BookOpen, RotateCcw } from 'lucide-react'
 import type { TravelPurpose } from '@/types/plan'
 
 const PURPOSE_EMOJI: Record<TravelPurpose, string> = {
@@ -16,12 +15,49 @@ const PURPOSE_EMOJI: Record<TravelPurpose, string> = {
   アクティビティ: '🏄',
 }
 
+interface Spot {
+  name: string
+  description: string
+  rating: number
+  ratingsTotal: number
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <span className="flex items-center gap-1 text-sm font-medium text-amber-500">
+      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+      {rating.toFixed(1)}
+    </span>
+  )
+}
+
 function ResultContent() {
   const params = useSearchParams()
   const prefecture = params.get('prefecture') ?? ''
   const purposes = (params.get('purposes') ?? '').split(',').filter(Boolean) as TravelPurpose[]
 
-  const spots = getRecommendations(prefecture, purposes)
+  const [spots, setSpots] = useState<Spot[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!prefecture) return
+
+    const query = new URLSearchParams({
+      prefecture,
+      purposes: purposes.join(','),
+    })
+
+    fetch(`/api/places?${query}`)
+      .then((r) => r.json())
+      .then((data: { spots?: Spot[]; error?: string }) => {
+        if (data.error) throw new Error(data.error)
+        setSpots(data.spots ?? [])
+      })
+      .catch(() => setError('スポット情報の取得に失敗しました'))
+      .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefecture])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
@@ -59,63 +95,84 @@ function ResultContent() {
           )}
         </div>
 
-        {/* スポット一覧 */}
-        {spots.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-md">
-            <p className="text-gray-400">該当するスポットが見つかりませんでした</p>
+        {/* ローディング */}
+        {loading && (
+          <div className="rounded-2xl bg-white p-10 text-center shadow-md space-y-3">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-500" />
+            <p className="text-gray-500 text-sm">スポットを検索中...</p>
+          </div>
+        )}
+
+        {/* エラー */}
+        {!loading && error && (
+          <div className="rounded-2xl bg-white p-8 text-center shadow-md">
+            <p className="text-red-500">{error}</p>
             <Link href="/plans/new" className="mt-4 inline-block text-sm text-blue-500 underline">
-              条件を変えて探す
+              もう一度試す
             </Link>
           </div>
-        ) : (
+        )}
+
+        {/* 結果 */}
+        {!loading && !error && (
           <>
-            <p className="text-sm text-gray-500 px-1">{spots.length}件のスポットが見つかりました</p>
-            <ul className="space-y-3">
-              {spots.map((spot) => (
-                <li key={spot.name} className="rounded-2xl bg-white p-5 shadow-md">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <h3 className="text-base font-bold text-gray-800">{spot.name}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{spot.description}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className="flex items-center gap-1 text-xs text-gray-400">
-                          <Clock className="h-3 w-3" />
-                          目安: {spot.suggestedTime}
-                        </span>
-                        {spot.purposes.map((p) => (
-                          <span
-                            key={p}
-                            className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                          >
-                            {PURPOSE_EMOJI[p]} {p}
-                          </span>
-                        ))}
+            {spots.length === 0 ? (
+              <div className="rounded-2xl bg-white p-10 text-center shadow-md">
+                <p className="text-gray-400">条件に合うスポットが見つかりませんでした</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-500 px-1">
+                  {spots.length}件のスポットが見つかりました（評価3以上・評価順）
+                </p>
+                <ul className="space-y-3">
+                  {spots.map((spot, i) => (
+                    <li key={i} className="rounded-2xl bg-white p-5 shadow-md">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-bold text-gray-800">{spot.name}</h3>
+                          {spot.description && (
+                            <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                              {spot.description}
+                            </p>
+                          )}
+                          <div className="mt-2 flex items-center gap-3">
+                            <StarRating rating={spot.rating} />
+                            {spot.ratingsTotal > 0 && (
+                              <span className="text-xs text-gray-400">
+                                ({spot.ratingsTotal.toLocaleString()}件)
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </>
         )}
 
         {/* アクション */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <Link
-            href="/plans/my"
-            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            <BookOpen className="h-4 w-4" />
-            マイプランを見る
-          </Link>
-          <Link
-            href="/plans/new"
-            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white hover:bg-emerald-600 transition-colors shadow-sm"
-          >
-            <MapPin className="h-4 w-4" />
-            もう一度探す
-          </Link>
-        </div>
+        {!loading && (
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <Link
+              href="/plans/my"
+              className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              <BookOpen className="h-4 w-4" />
+              マイプランを見る
+            </Link>
+            <Link
+              href="/plans/new"
+              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white hover:bg-emerald-600 transition-colors shadow-sm"
+            >
+              <RotateCcw className="h-4 w-4" />
+              もう一度探す
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   )
@@ -125,8 +182,8 @@ export default function ResultPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-400">
-          読み込み中...
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-500" />
         </div>
       }
     >
