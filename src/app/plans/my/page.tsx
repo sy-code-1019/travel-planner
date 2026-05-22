@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -110,8 +110,13 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
 }
 
 export default function MyPlansPage() {
-  const [plans, setPlans] = useState<Plan[]>(() => getPlans())
+  const [plans, setPlans] = useState<Plan[]>([])
   const [deleteTarget, setDeleteTarget] = useState<Plan | null>(null)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlans(getPlans())
+  }, [])
 
   function handleDeleteConfirm() {
     if (!deleteTarget) return
