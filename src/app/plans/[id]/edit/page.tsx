@@ -267,9 +267,7 @@ function EditPlanForm({ plan }: { plan: Plan }) {
 
   const [title, setTitle] = useState(plan.title)
   const [departureDate, setDepartureDate] = useState(plan.departureDate)
-  const [departureTime, setDepartureTime] = useState(plan.departureTime)
   const [returnDate, setReturnDate] = useState(plan.returnDate)
-  const [returnTime, setReturnTime] = useState(plan.returnTime)
   const [itinerary, setItinerary] = useState<DayPlan[]>(plan.itinerary)
   const [dateError, setDateError] = useState('')
   const [searchTarget, setSearchTarget] = useState<{ dayIdx: number; spotId: string } | null>(null)
@@ -307,24 +305,15 @@ function EditPlanForm({ plan }: { plan: Plan }) {
       setDateError('帰宅日は出発日より後にしてください')
       return
     }
-    if (
-      departureDate === returnDate &&
-      departureTime &&
-      returnTime &&
-      returnTime <= departureTime
-    ) {
-      setDateError('日帰りの場合、帰宅時刻は出発時刻より後にしてください')
-      return
-    }
     const updated: Plan = {
       id: plan.id,
       mode: 'planned',
       createdAt: plan.createdAt,
       title,
       departureDate,
-      departureTime,
+      departureTime: '',
       returnDate,
-      returnTime,
+      returnTime: '',
       itinerary,
     }
     updatePlan(updated)
@@ -375,7 +364,7 @@ function EditPlanForm({ plan }: { plan: Plan }) {
           <h2 className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <Calendar className="h-4 w-4 text-blue-500" /> 日程
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div>
               <label className="block text-xs text-gray-500 mb-1">出発日</label>
               <input
@@ -386,30 +375,12 @@ function EditPlanForm({ plan }: { plan: Plan }) {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">出発時刻</label>
-              <input
-                type="time"
-                value={departureTime}
-                onChange={(e) => setDepartureTime(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
               <label className="block text-xs text-gray-500 mb-1">帰宅日</label>
               <input
                 type="date"
                 value={returnDate}
                 min={departureDate}
                 onChange={(e) => setReturnDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">帰宅時刻</label>
-              <input
-                type="time"
-                value={returnTime}
-                onChange={(e) => setReturnTime(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>

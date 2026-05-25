@@ -298,9 +298,7 @@ export default function NewPlanPage() {
   const [title, setTitle] = useState('')
 
   const [departureDate, setDepartureDate] = useState('')
-  const [departureTime, setDepartureTime] = useState('')
   const [returnDate, setReturnDate] = useState('')
-  const [returnTime, setReturnTime] = useState('')
   const [itinerary, setItinerary] = useState<DayPlan[]>([])
   const [dateError, setDateError] = useState('')
 
@@ -314,15 +312,6 @@ export default function NewPlanPage() {
     }
     if (returnDate < departureDate) {
       setDateError('帰宅日は出発日より後にしてください')
-      return
-    }
-    if (
-      departureDate === returnDate &&
-      departureTime &&
-      returnTime &&
-      returnTime <= departureTime
-    ) {
-      setDateError('日帰りの場合、帰宅時刻は出発時刻より後にしてください')
       return
     }
     setDateError('')
@@ -360,9 +349,9 @@ export default function NewPlanPage() {
       mode: 'planned',
       title,
       departureDate,
-      departureTime,
+      departureTime: '',
       returnDate,
-      returnTime,
+      returnTime: '',
       itinerary,
     })
     router.push('/plans/my')
@@ -425,9 +414,9 @@ export default function NewPlanPage() {
           <div className="rounded-2xl bg-white p-6 shadow-md space-y-5">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-500" />
-              日程と時間を決めよう
+              日程を決めよう
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   出発日 <span className="text-red-500">*</span>
@@ -441,15 +430,6 @@ export default function NewPlanPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">出発時刻</label>
-                <input
-                  type="time"
-                  value={departureTime}
-                  onChange={(e) => setDepartureTime(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   帰宅日 <span className="text-red-500">*</span>
                 </label>
@@ -458,15 +438,6 @@ export default function NewPlanPage() {
                   value={returnDate}
                   min={departureDate || today}
                   onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">帰宅時刻</label>
-                <input
-                  type="time"
-                  value={returnTime}
-                  onChange={(e) => setReturnTime(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
