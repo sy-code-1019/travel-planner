@@ -17,6 +17,7 @@ interface GooglePlace {
   vicinity?: string
   formatted_address?: string
   types?: string[]
+  photos?: { photo_reference: string }[]
 }
 
 async function geocodePrefecture(
@@ -96,6 +97,7 @@ export async function GET(request: Request) {
       description: p.formatted_address ?? p.vicinity ?? '',
       rating: p.rating ?? 0,
       ratingsTotal: p.user_ratings_total ?? 0,
+      photoRef: p.photos?.[0]?.photo_reference ?? null,
     }))
 
   return NextResponse.json({ spots })

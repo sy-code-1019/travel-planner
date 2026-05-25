@@ -32,6 +32,7 @@ interface SearchResult {
   name: string
   description: string
   rating: number
+  photoRef?: string | null
 }
 
 function SpotSearchModal({
@@ -167,19 +168,32 @@ function SpotSearchModal({
             </p>
           ) : (
             <ul className="space-y-2">
-              {results.slice(0, 20).map((spot, i) => (
+              {results.slice(0, 15).map((spot, i) => (
                 <li key={i}>
                   <button
                     onClick={() => onSelect(spot.name)}
-                    className="w-full rounded-xl border border-gray-100 p-3 text-left hover:border-blue-300 hover:bg-blue-50 transition-all"
+                    className="w-full rounded-xl border border-gray-100 text-left hover:border-blue-300 hover:bg-blue-50 transition-all overflow-hidden"
                   >
-                    <p className="text-sm font-medium text-gray-800">{spot.name}</p>
-                    {spot.description && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">{spot.description}</p>
+                    {spot.photoRef ? (
+                      <img
+                        src={`/api/places/photo?ref=${spot.photoRef}`}
+                        alt={spot.name}
+                        className="w-full h-32 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+                        <MapPin className="h-8 w-8 text-gray-300" />
+                      </div>
                     )}
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <span className="text-xs text-amber-600">{spot.rating.toFixed(1)}</span>
+                    <div className="p-3">
+                      <p className="text-sm font-medium text-gray-800">{spot.name}</p>
+                      {spot.description && (
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">{spot.description}</p>
+                      )}
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        <span className="text-xs text-amber-600">{spot.rating.toFixed(1)}</span>
+                      </div>
                     </div>
                   </button>
                 </li>
