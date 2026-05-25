@@ -271,6 +271,15 @@ export default function NewPlanPage() {
       setDateError('帰宅日は出発日より後にしてください')
       return
     }
+    if (
+      departureDate === returnDate &&
+      departureTime &&
+      returnTime &&
+      returnTime <= departureTime
+    ) {
+      setDateError('日帰りの場合、帰宅時刻は出発時刻より後にしてください')
+      return
+    }
     setDateError('')
     const days = generateDays(departureDate, returnDate)
     setItinerary(days.map((date) => ({ date, spots: [newSpot()] })))
