@@ -64,11 +64,14 @@ function SpotSearchModal({
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [phase, setPhase] = useState<'form' | 'results'>('form')
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 15
 
   async function handleSearch() {
     if (!prefecture) return
     setLoading(true)
     setPhase('results')
+    setPage(0)
     try {
       const query = new URLSearchParams({ prefecture, purposes: purposes.join(',') })
       const res = await fetch(`/api/places?${query}`)
@@ -80,6 +83,9 @@ function SpotSearchModal({
       setLoading(false)
     }
   }
+
+  const totalPages = Math.ceil(results.length / PAGE_SIZE)
+  const pagedResults = results.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
@@ -185,38 +191,63 @@ function SpotSearchModal({
               スポットが見つかりませんでした
             </p>
           ) : (
-            <ul className="space-y-2">
-              {results.slice(0, 15).map((spot, i) => (
-                <li key={i}>
-                  <button
-                    onClick={() => onSelect(spot.name)}
-                    className="w-full rounded-xl border border-gray-100 text-left hover:border-blue-300 hover:bg-blue-50 transition-all overflow-hidden"
-                  >
-                    {spot.photoRef ? (
-                      <img
-                        src={`/api/places/photo?ref=${spot.photoRef}`}
-                        alt={spot.name}
-                        className="w-full h-32 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
-                        <MapPin className="h-8 w-8 text-gray-300" />
-                      </div>
-                    )}
-                    <div className="p-3">
-                      <p className="text-sm font-medium text-gray-800">{spot.name}</p>
-                      {spot.description && (
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{spot.description}</p>
+            <>
+              <ul className="space-y-2">
+                {pagedResults.map((spot, i) => (
+                  <li key={i}>
+                    <button
+                      onClick={() => onSelect(spot.name)}
+                      className="w-full rounded-xl border border-gray-100 text-left hover:border-blue-300 hover:bg-blue-50 transition-all overflow-hidden"
+                    >
+                      {spot.photoRef ? (
+                        <img
+                          src={`/api/places/photo?ref=${spot.photoRef}`}
+                          alt={spot.name}
+                          className="w-full h-32 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+                          <MapPin className="h-8 w-8 text-gray-300" />
+                        </div>
                       )}
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                        <span className="text-xs text-amber-600">{spot.rating.toFixed(1)}</span>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-gray-800">{spot.name}</p>
+                        {spot.description && (
+                          <p className="text-xs text-gray-400 mt-0.5 truncate">
+                            {spot.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          <span className="text-xs text-amber-600">{spot.rating.toFixed(1)}</span>
+                        </div>
                       </div>
-                    </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => p - 1)}
+                    className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 disabled:opacity-30 transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> 前へ
                   </button>
-                </li>
-              ))}
-            </ul>
+                  <span className="text-xs text-gray-400">
+                    {page + 1} / {totalPages}
+                  </span>
+                  <button
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage((p) => p + 1)}
+                    className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 disabled:opacity-30 transition-colors"
+                  >
+                    次へ <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
