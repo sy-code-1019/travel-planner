@@ -7,6 +7,7 @@ export interface Spot {
   place: string
   transportation: Transportation | ''
   memo: string
+  isFixed?: boolean
 }
 
 export interface DayPlan {

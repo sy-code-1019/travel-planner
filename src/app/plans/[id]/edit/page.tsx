@@ -13,6 +13,7 @@ import {
   Search,
   Star,
   X,
+  Home,
 } from 'lucide-react'
 import { getPlans, updatePlan } from '@/lib/storage'
 import { REGIONS } from '@/data/recommendations'
@@ -262,19 +263,45 @@ function newSpot(): Spot {
   return { id: crypto.randomUUID(), time: '', place: '', transportation: '', memo: '' }
 }
 
+function newFixedSpot(place: string): Spot {
+  return { id: crypto.randomUUID(), time: '', place, transportation: '', memo: '', isFixed: true }
+}
+
+function ensureFixedSpots(itinerary: DayPlan[]): DayPlan[] {
+  if (itinerary.length === 0) return itinerary
+  return itinerary.map((day, idx) => {
+    const isFirst = idx === 0
+    const isLast = idx === itinerary.length - 1
+    const spots = [...day.spots]
+    if (!spots[0]?.isFixed) {
+      spots.unshift(newFixedSpot(isFirst ? '自宅' : ''))
+    }
+    if (!spots[spots.length - 1]?.isFixed) {
+      spots.push(newFixedSpot(isLast ? '自宅' : ''))
+    }
+    return { ...day, spots }
+  })
+}
+
 function EditPlanForm({ plan }: { plan: Plan }) {
   const router = useRouter()
 
   const [title, setTitle] = useState(plan.title)
   const [departureDate, setDepartureDate] = useState(plan.departureDate)
   const [returnDate, setReturnDate] = useState(plan.returnDate)
-  const [itinerary, setItinerary] = useState<DayPlan[]>(plan.itinerary)
+  const [itinerary, setItinerary] = useState<DayPlan[]>(() => ensureFixedSpots(plan.itinerary))
   const [dateError, setDateError] = useState('')
   const [searchTarget, setSearchTarget] = useState<{ dayIdx: number; spotId: string } | null>(null)
 
   function addSpot(dayIdx: number) {
     setItinerary((prev) =>
-      prev.map((d, i) => (i === dayIdx ? { ...d, spots: [...d.spots, newSpot()] } : d))
+      prev.map((d, i) => {
+        if (i !== dayIdx) return d
+        const spots = [...d.spots]
+        // 末尾の固定スポット（帰着地）の直前に挿入
+        spots.splice(spots.length - 1, 0, newSpot())
+        return { ...d, spots }
+      })
     )
   }
 
@@ -407,40 +434,63 @@ function EditPlanForm({ plan }: { plan: Plan }) {
               {day.spots.map((spot, spotIdx) => (
                 <div
                   key={spot.id}
-                  className="rounded-xl border border-gray-100 bg-gray-50 p-3 space-y-2"
+                  className={`rounded-xl border p-3 space-y-2 ${
+                    spot.isFixed ? 'border-blue-200 bg-blue-50' : 'border-gray-100 bg-gray-50'
+                  }`}
                 >
+                  {spot.isFixed && (
+                    <div className="flex items-center gap-1.5">
+                      <Home className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="text-xs font-medium text-blue-600">
+                        {spotIdx === 0 ? '出発地' : '帰着地'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5">
-                      {spotIdx + 1}
-                    </span>
+                    {!spot.isFixed && (
+                      <span className="text-xs font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5">
+                        {spotIdx}
+                      </span>
+                    )}
                     <input
                       type="time"
                       value={spot.time}
                       onChange={(e) => updateSpot(dayIdx, spot.id, 'time', e.target.value)}
                       className="w-28 rounded-lg border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                     />
-                    <button
-                      onClick={() => removeSpot(dayIdx, spot.id)}
-                      disabled={day.spots.length === 1}
-                      className="ml-auto text-gray-300 hover:text-red-400 disabled:opacity-30 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {!spot.isFixed && (
+                      <button
+                        onClick={() => removeSpot(dayIdx, spot.id)}
+                        className="ml-auto text-gray-300 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={spot.place}
                       onChange={(e) => updateSpot(dayIdx, spot.id, 'place', e.target.value)}
-                      placeholder="場所・スポット名"
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      placeholder={
+                        spot.isFixed
+                          ? spotIdx === 0
+                            ? '出発地を入力'
+                            : '帰着地を入力'
+                          : '場所・スポット名'
+                      }
+                      className={`flex-1 rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                        spot.isFixed ? 'border-blue-200 bg-white' : 'border-gray-200'
+                      }`}
                     />
-                    <button
-                      onClick={() => setSearchTarget({ dayIdx, spotId: spot.id })}
-                      className="flex-shrink-0 rounded-lg border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-1"
-                    >
-                      <Search className="h-3.5 w-3.5" /> おすすめ
-                    </button>
+                    {!spot.isFixed && (
+                      <button
+                        onClick={() => setSearchTarget({ dayIdx, spotId: spot.id })}
+                        className="flex-shrink-0 rounded-lg border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-1"
+                      >
+                        <Search className="h-3.5 w-3.5" /> おすすめ
+                      </button>
+                    )}
                   </div>
                   <select
                     value={spot.transportation}
