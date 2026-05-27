@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, Sparkles } from 'lucide-react'
+import { ChevronLeft, Sparkles, ExternalLink } from 'lucide-react'
 import { JAPAN_EVENTS } from '@/data/events'
 import type { JapanEvent } from '@/data/events'
 
@@ -24,19 +24,34 @@ function EventCard({ event }: { event: JapanEvent }) {
   const style = CATEGORY_STYLE[event.category]
   return (
     <div className={`rounded-xl bg-white shadow-sm border-l-4 ${style.border} p-4`}>
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${style.badge}`}>
-          {style.label}
-        </span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <span
+            className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1.5 ${style.badge}`}
+          >
+            {style.label}
+          </span>
+          <p className="font-bold text-gray-800 text-sm">{event.name}</p>
+          <p className="text-xs font-medium text-blue-500 mt-0.5">
+            {formatDate(event.month, event.startDay, event.endDay)}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            📍 {event.prefecture} · {event.location}
+          </p>
+          <p className="text-xs text-gray-400 mt-1 leading-relaxed">{event.description}</p>
+        </div>
+        {event.url && (
+          <a
+            href={event.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors mt-1"
+          >
+            <ExternalLink className="h-3 w-3" />
+            公式
+          </a>
+        )}
       </div>
-      <p className="font-bold text-gray-800 text-sm">{event.name}</p>
-      <p className="text-xs font-medium text-blue-500 mt-0.5">
-        {formatDate(event.month, event.startDay, event.endDay)}
-      </p>
-      <p className="text-xs text-gray-500 mt-0.5">
-        📍 {event.prefecture} · {event.location}
-      </p>
-      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{event.description}</p>
     </div>
   )
 }
@@ -70,6 +85,11 @@ export default function EventsPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6 space-y-8">
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-700 leading-relaxed">
+          掲載している開催日は例年の目安です。悪天候や諸事情により変更・中止になる場合があります。
+          お出かけ前に各イベントの公式サイトで最新情報をご確認ください。
+        </div>
+
         <section>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base font-bold text-gray-800">{currentMonth}月開催</span>

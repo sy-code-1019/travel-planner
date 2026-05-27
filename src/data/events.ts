@@ -8,6 +8,7 @@ export interface JapanEvent {
   endDay: number
   description: string
   category: '祭り' | '花火' | '花'
+  url?: string
 }
 
 export const JAPAN_EVENTS: JapanEvent[] = [
@@ -33,6 +34,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 28,
     description: '早咲きの河津桜が川沿いに咲き誇る。濃いピンクが美しい',
     category: '花',
+    url: 'https://www.kawazu-onsen.com/sakura/',
   },
 
   // 2月
@@ -46,6 +48,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 11,
     description: '世界最大規模の雪と氷の祭典。巨大雪像が立ち並ぶ',
     category: '祭り',
+    url: 'https://www.snowfes.com/',
   },
   {
     id: 'e04',
@@ -57,6 +60,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 16,
     description: '雪でできたかまくらに子どもたちが集う伝統行事',
     category: '祭り',
+    url: 'https://www.yokotekamakura.com/',
   },
   {
     id: 'e05',
@@ -79,6 +83,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 28,
     description: '早咲きの河津桜が川沿いに咲き誇る。濃いピンクが美しい',
     category: '花',
+    url: 'https://www.kawazu-onsen.com/sakura/',
   },
   {
     id: 'e07',
@@ -103,6 +108,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 14,
     description: '1300年以上続く東大寺の伝統行事。松明の炎が夜空を彩る',
     category: '祭り',
+    url: 'https://www.todaiji.or.jp/',
   },
   {
     id: 'e09',
@@ -125,6 +131,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 31,
     description: '3万本の桜が山全体を染める日本一の桜の名所',
     category: '花',
+    url: 'https://www.yoshinoyama-sakura.jp/',
   },
 
   // 4月
@@ -138,6 +145,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 30,
     description: '約2600本の桜が咲き誇る日本最古級の桜まつり',
     category: '花',
+    url: 'https://www.hirosakipark.jp/',
   },
   {
     id: 'e12',
@@ -149,6 +157,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 15,
     description: '日本三大美祭のひとつ。豪華な屋台行列が山あいの古都を練り歩く',
     category: '祭り',
+    url: 'https://www.hida.jp/',
   },
   {
     id: 'e13',
@@ -160,6 +169,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 30,
     description: '青いネモフィラが丘一面を埋め尽くす絶景。SNSでも人気',
     category: '花',
+    url: 'https://hitachikaihin.jp/',
   },
   {
     id: 'e14',
@@ -171,6 +181,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 30,
     description: '富士山をバックに約80万株の芝桜が一面に広がる',
     category: '花',
+    url: 'https://www.shibazakura.jp/',
   },
   {
     id: 'e15',
@@ -195,6 +206,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 4,
     description: '日本最大級の観客動員数を誇る春まつり',
     category: '祭り',
+    url: 'https://www.dontaku.com/',
   },
   {
     id: 'e17',
@@ -206,6 +218,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 15,
     description: '京都三大祭のひとつ。平安貴族の装束行列が1km以上続く',
     category: '祭り',
+    url: 'https://www.shimogamo-jinja.or.jp/',
   },
   {
     id: 'e18',
@@ -217,6 +230,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 18,
     description: '浅草を代表する大祭。神輿と人波で街が活気に包まれる',
     category: '祭り',
+    url: 'https://www.asakusajinja.jp/sanjamatsuri/',
   },
   {
     id: 'e19',
@@ -228,6 +242,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 18,
     description: '伊達政宗公を偲ぶ仙台最大の祭り。すずめ踊りが有名',
     category: '祭り',
+    url: 'https://www.aoba-matsuri.com/',
   },
   {
     id: 'e20',
@@ -239,6 +254,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 10,
     description: '青いネモフィラが丘一面を埋め尽くす絶景',
     category: '花',
+    url: 'https://hitachikaihin.jp/',
   },
   {
     id: 'e21',
@@ -261,6 +277,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 20,
     description: '樹齢100年以上の大藤を含む美しい藤の花が咲き誇る',
     category: '花',
+    url: 'https://www.ashikaga.co.jp/',
   },
 
   // 6月
@@ -274,6 +291,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 5,
     description: '熱田神宮最大の祭典。奉納花火も打ち上がる',
     category: '祭り',
+    url: 'https://www.atsutajingu.or.jp/',
   },
   {
     id: 'e24',
@@ -285,6 +303,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 17,
     description: '江戸三大祭のひとつ。荘厳な神輿渡御と雅楽が見どころ',
     category: '祭り',
+    url: 'https://www.hiejinja.net/',
   },
   {
     id: 'e25',
@@ -320,6 +339,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 31,
     description: '1100年以上の歴史を誇る日本最大級の祭り。山鉾巡行が圧巻',
     category: '祭り',
+    url: 'https://www.gionmatsuri.or.jp/',
   },
   {
     id: 'e28',
@@ -331,6 +351,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 15,
     description: '巨大な山笠が博多の街を疾走する奉納行事',
     category: '祭り',
+    url: 'https://www.hakatayamakasa.com/',
   },
   {
     id: 'e29',
@@ -353,6 +374,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 14,
     description: '日本三大火祭のひとつ。12本の大松明が境内を照らす',
     category: '祭り',
+    url: 'https://www.nachisan.org/',
   },
   {
     id: 'e31',
@@ -364,6 +386,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 26,
     description: '江戸時代から続く東京の夏の風物詩。約20,000発が夜空を彩る',
     category: '花火',
+    url: 'https://www.sumidagawa-hanabi.com/',
   },
   {
     id: 'e32',
@@ -386,6 +409,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 31,
     description: '一面に広がる紫のラベンダー畑。北海道夏の風物詩',
     category: '花',
+    url: 'https://www.farm-tomita.co.jp/',
   },
   {
     id: 'e34',
@@ -410,6 +434,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 7,
     description: '東北三大祭のひとつ。巨大な灯籠が夜の街を幻想的に彩る',
     category: '祭り',
+    url: 'https://www.nebuta.or.jp/',
   },
   {
     id: 'e36',
@@ -432,6 +457,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 6,
     description: '稲穂に見立てた竿燈を操る東北の伝統的な夏祭り',
     category: '祭り',
+    url: 'https://www.kantou.gr.jp/',
   },
   {
     id: 'e38',
@@ -443,6 +469,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 8,
     description: '東北三大祭のひとつ。色鮮やかな七夕飾りが商店街を彩る',
     category: '祭り',
+    url: 'https://www.tanabata.jp/',
   },
   {
     id: 'e39',
@@ -454,6 +481,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 15,
     description: '400年以上の歴史を持つ日本最大の盆踊り',
     category: '祭り',
+    url: 'https://awaodori.net/',
   },
   {
     id: 'e40',
@@ -465,6 +493,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 12,
     description: '土佐の夏を彩る豪快な踊り祭り',
     category: '祭り',
+    url: 'https://www.yosakoi.com/',
   },
   {
     id: 'e41',
@@ -487,6 +516,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 3,
     description: '日本三大花火大会のひとつ。正三尺玉など豪快な花火が夜空を彩る',
     category: '花火',
+    url: 'https://www.nagaokamatsuri.com/',
   },
   {
     id: 'e43',
@@ -531,6 +561,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 24,
     description: '日本三大花火大会のひとつ。花火師が技を競う全国競技大会',
     category: '花火',
+    url: 'https://www.oomagari-hanabi.com/',
   },
   {
     id: 'e47',
@@ -540,7 +571,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     month: 8,
     startDay: 1,
     endDay: 20,
-    description: '約150万本のひまわりが2.3haに広がる日本最大級のひまわり畑',
+    description: '約150万本のひまわりが広がる日本最大級のひまわり畑',
     category: '花',
   },
 
@@ -555,10 +586,11 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 14,
     description: '重さ4トンのだんじりが街を疾走する迫力の秋祭り',
     category: '祭り',
+    url: 'https://www.danjiri.or.jp/',
   },
   {
     id: 'e49',
-    name: 'コスモスまつり（国営昭和記念公園）',
+    name: 'コスモスまつり',
     location: '国営昭和記念公園',
     prefecture: '東京',
     month: 9,
@@ -566,6 +598,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 30,
     description: '約100万本のコスモスが園内に咲き誇る秋の風物詩',
     category: '花',
+    url: 'https://www.showakinen-koen.jp/',
   },
 
   // 10月
@@ -590,6 +623,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 10,
     description: '日本三大美祭のひとつ。提灯に照らされた屋台が幻想的',
     category: '祭り',
+    url: 'https://www.hida.jp/',
   },
   {
     id: 'e52',
@@ -601,6 +635,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 11,
     description: '100年以上の歴史を持つ日本最大の花火競技大会のひとつ',
     category: '花火',
+    url: 'https://www.tsuchiura-hanabi.jp/',
   },
   {
     id: 'e53',
@@ -612,6 +647,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 19,
     description: '小江戸川越の秋祭り。江戸型の豪華な山車が街を練り歩く',
     category: '祭り',
+    url: 'https://www.kawagoematsuri.jp/',
   },
   {
     id: 'e54',
@@ -623,6 +659,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 22,
     description: '京都三大祭のひとつ。明治から平安時代まで歴史行列が続く',
     category: '祭り',
+    url: 'https://www.heianjingu.or.jp/',
   },
   {
     id: 'e55',
@@ -637,7 +674,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
   },
   {
     id: 'e56',
-    name: 'コスモスまつり（国営昭和記念公園）',
+    name: 'コスモスまつり',
     location: '国営昭和記念公園',
     prefecture: '東京',
     month: 10,
@@ -645,6 +682,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 20,
     description: '約100万本のコスモスが園内に咲き誇る秋の風物詩',
     category: '花',
+    url: 'https://www.showakinen-koen.jp/',
   },
   {
     id: 'e57',
@@ -680,6 +718,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 5,
     description: '商売繁盛を願う熊手を求める江戸から続く市',
     category: '祭り',
+    url: 'https://www.otorisama.or.jp/',
   },
   {
     id: 'e60',
@@ -726,6 +765,7 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 3,
     description: '日本三大曳山祭のひとつ。冬の夜に笠鉾と屋台が花火とともに進む',
     category: '祭り',
+    url: 'https://www.chichibu-matsuri.jp/',
   },
   {
     id: 'e64',
@@ -737,5 +777,6 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 18,
     description: '870年以上続く奈良の師走を彩る大祭',
     category: '祭り',
+    url: 'https://www.kasugataisha.or.jp/',
   },
 ]
