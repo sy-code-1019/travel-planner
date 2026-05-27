@@ -969,30 +969,6 @@ export const JAPAN_EVENTS: JapanEvent[] = [
 
   // 4月 追加
   {
-    id: 'e80',
-    name: '春の高山祭',
-    location: '日枝神社',
-    prefecture: '岐阜',
-    month: 4,
-    startDay: 14,
-    endDay: 15,
-    description: '日本三大美祭のひとつ。絢爛豪華な屋台と神事が飛騨高山の春を彩る',
-    category: '祭り',
-    url: 'https://www.hida.jp/',
-  },
-  {
-    id: 'e81',
-    name: '弘前城さくらまつり',
-    location: '弘前公園',
-    prefecture: '青森',
-    month: 4,
-    startDay: 23,
-    endDay: 30,
-    description: '日本最大規模の桜の名所で約2600本が咲き誇る。花びらが堀を埋め尽くす「花筏」も絶景',
-    category: '花',
-    url: 'https://www.hirosakipark.jp/',
-  },
-  {
     id: 'e82',
     name: 'となみチューリップフェア',
     location: '砺波チューリップ公園',
@@ -1002,18 +978,6 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     endDay: 30,
     description: '日本一のチューリップ産地で開かれる春の祭典。約300万本のチューリップが咲き誇る',
     category: '花',
-  },
-  {
-    id: 'e83',
-    name: '足利フラワーパーク 藤まつり',
-    location: '足利フラワーパーク',
-    prefecture: '栃木',
-    month: 4,
-    startDay: 15,
-    endDay: 30,
-    description: '樹齢150年を超える大藤が咲き誇る。淡い紫の花房が幻想的な空間を演出',
-    category: '花',
-    url: 'https://www.ashikaga.co.jp/',
   },
   {
     id: 'e84',
@@ -1041,29 +1005,6 @@ export const JAPAN_EVENTS: JapanEvent[] = [
   },
 
   // 5月 追加
-  {
-    id: 'e86',
-    name: '博多どんたく港まつり',
-    location: '博多・天神エリア',
-    prefecture: '福岡',
-    month: 5,
-    startDay: 3,
-    endDay: 4,
-    description:
-      '毎年200万人以上が訪れる日本最大規模の祭り。三味線・どんたく踊りが博多の街を練り歩く',
-    category: '祭り',
-  },
-  {
-    id: 'e87',
-    name: '三社祭',
-    location: '浅草神社',
-    prefecture: '東京',
-    month: 5,
-    startDay: 15,
-    endDay: 17,
-    description: '浅草神社の例大祭。100基を超える神輿が浅草の街を練り歩く江戸最大の祭り',
-    category: '祭り',
-  },
   {
     id: 'e88',
     name: '神田祭',
@@ -1101,44 +1042,6 @@ export const JAPAN_EVENTS: JapanEvent[] = [
     category: '祭り',
     url: 'https://www.hyakumangoku.jp/',
   },
-  {
-    id: 'e91',
-    name: '北鎌倉あじさい',
-    location: '明月院・長谷寺ほか',
-    prefecture: '神奈川',
-    month: 6,
-    startDay: 1,
-    endDay: 30,
-    description:
-      '「あじさい寺」として名高い明月院や長谷寺が色とりどりのあじさいで彩られる梅雨の風物詩',
-    category: '花',
-  },
-
-  // 7月 追加
-  {
-    id: 'e92',
-    name: '博多祇園山笠',
-    location: '博多市内',
-    prefecture: '福岡',
-    month: 7,
-    startDay: 1,
-    endDay: 15,
-    description: '770年以上の歴史を誇る博多の夏祭り。約1トンの山笠を担いで街を疾走する追い山は圧巻',
-    category: '祭り',
-    url: 'https://www.hakatayamakasa.com/',
-  },
-  {
-    id: 'e93',
-    name: '那智の火祭',
-    location: '熊野那智大社',
-    prefecture: '和歌山',
-    month: 7,
-    startDay: 14,
-    endDay: 14,
-    description: '高さ6mの大松明12本が那智滝を神迎えする幻想的な炎の神事',
-    category: '祭り',
-  },
-
   // 8月 追加
   {
     id: 'e94',
