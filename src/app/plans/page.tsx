@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import { MapPin, PlusCircle, BookOpen, Send, Users, LogIn } from 'lucide-react'
+import { MapPin, PlusCircle, BookOpen, Send, Users, LogIn, LogOut } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 const menuItems = [
   {
@@ -9,6 +12,7 @@ const menuItems = [
     description: '新しい旅の計画をたてよう',
     color: 'bg-blue-500 hover:bg-blue-600',
     enabled: true,
+    requireAuth: false,
   },
   {
     href: '/plans/my',
@@ -17,6 +21,7 @@ const menuItems = [
     description: '作成済みの旅行プランを見る',
     color: 'bg-emerald-500 hover:bg-emerald-600',
     enabled: true,
+    requireAuth: false,
   },
   {
     href: '/feed/new',
@@ -24,7 +29,8 @@ const menuItems = [
     label: 'プランを投稿する',
     description: '旅行プランをみんなとシェア',
     color: 'bg-violet-500 hover:bg-violet-600',
-    enabled: false,
+    enabled: true,
+    requireAuth: true,
   },
   {
     href: '/feed',
@@ -32,11 +38,14 @@ const menuItems = [
     label: 'みんなの投稿を見る',
     description: '他のユーザーの旅行プランを閲覧',
     color: 'bg-orange-500 hover:bg-orange-600',
-    enabled: false,
+    enabled: true,
+    requireAuth: false,
   },
 ]
 
 export default function PlansPage() {
+  const { user, logout } = useAuth()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
       {/* ヘッダー */}
@@ -46,13 +55,26 @@ export default function PlansPage() {
             <MapPin className="h-6 w-6 text-blue-500" />
             <span className="text-xl font-bold text-gray-800">TravelPlanner</span>
           </div>
-          <Link
-            href="/auth/login"
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            <LogIn className="h-4 w-4" />
-            ログイン
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">{user.displayName ?? user.email}</span>
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                ログアウト
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              ログイン
+            </Link>
+          )}
         </div>
       </header>
 
@@ -66,7 +88,8 @@ export default function PlansPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {menuItems.map((item) => {
             const Icon = item.icon
-            if (item.enabled) {
+            const isLocked = item.requireAuth && !user
+            if (item.enabled && !isLocked) {
               return (
                 <Link
                   key={item.href}
@@ -82,16 +105,17 @@ export default function PlansPage() {
               )
             }
             return (
-              <div
+              <Link
                 key={item.href}
-                className="flex items-center gap-4 rounded-2xl bg-gray-200 p-6 text-gray-400 shadow-inner cursor-not-allowed"
+                href="/auth/login"
+                className="flex items-center gap-4 rounded-2xl bg-gray-200 p-6 text-gray-400 shadow-inner hover:bg-gray-300 transition-colors"
               >
                 <Icon className="h-10 w-10 flex-shrink-0" />
                 <div>
                   <p className="text-lg font-bold">{item.label}</p>
-                  <p className="mt-0.5 text-sm">近日公開予定</p>
+                  <p className="mt-0.5 text-sm">ログインが必要です</p>
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>
