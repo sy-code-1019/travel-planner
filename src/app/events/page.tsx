@@ -13,6 +13,31 @@ const CATEGORY_STYLE: Record<
   花火: { badge: 'bg-rose-100 text-rose-600', border: 'border-l-rose-400', label: '🎆 花火' },
   祭り: { badge: 'bg-amber-100 text-amber-700', border: 'border-l-amber-400', label: '🎋 祭り' },
   花: { badge: 'bg-pink-100 text-pink-600', border: 'border-l-pink-400', label: '🌸 花' },
+  音楽フェス: {
+    badge: 'bg-indigo-100 text-indigo-600',
+    border: 'border-l-indigo-400',
+    label: '🎵 音楽フェス',
+  },
+  グルメフェス: {
+    badge: 'bg-orange-100 text-orange-600',
+    border: 'border-l-orange-400',
+    label: '🍜 グルメフェス',
+  },
+  イルミネーション: {
+    badge: 'bg-cyan-100 text-cyan-600',
+    border: 'border-l-cyan-400',
+    label: '✨ イルミネーション',
+  },
+  アート: {
+    badge: 'bg-purple-100 text-purple-600',
+    border: 'border-l-purple-400',
+    label: '🎨 アート',
+  },
+  'アニメ・漫画': {
+    badge: 'bg-sky-100 text-sky-600',
+    border: 'border-l-sky-400',
+    label: '🎌 アニメ・漫画',
+  },
 }
 
 function formatDate(month: number, startDay: number, endDay: number): string {
