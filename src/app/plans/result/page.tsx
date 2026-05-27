@@ -81,8 +81,8 @@ function ResultContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-3">
           <Link href="/plans" className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors">
             <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -96,7 +96,7 @@ function ResultContent() {
 
       <main className="mx-auto max-w-2xl px-4 py-8 space-y-4">
         {/* 検索条件サマリー */}
-        <div className="rounded-2xl bg-white p-5 shadow-md">
+        <div className="rounded-2xl bg-white p-5 shadow-sm">
           <p className="text-sm text-gray-500 mb-2">検索条件</p>
           <p className="text-xl font-bold text-gray-800 flex items-center gap-1">
             <MapPin className="h-5 w-5 text-emerald-500" />
@@ -118,7 +118,7 @@ function ResultContent() {
 
         {/* ローディング */}
         {loading && (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-md space-y-3">
+          <div className="rounded-2xl bg-white p-10 text-center shadow-sm space-y-3">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-500" />
             <p className="text-gray-500 text-sm">スポットを検索中...</p>
           </div>
@@ -126,7 +126,7 @@ function ResultContent() {
 
         {/* エラー */}
         {!loading && error && (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-md">
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
             <p className="text-red-500">{error}</p>
             <Link href="/plans/new" className="mt-4 inline-block text-sm text-blue-500 underline">
               もう一度試す
@@ -138,7 +138,7 @@ function ResultContent() {
         {!loading && !error && (
           <>
             {spots.length === 0 ? (
-              <div className="rounded-2xl bg-white p-10 text-center shadow-md">
+              <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
                 <p className="text-gray-400">条件に合うスポットが見つかりませんでした</p>
               </div>
             ) : (
@@ -151,7 +151,7 @@ function ResultContent() {
                 </p>
                 <ul className="space-y-3">
                   {pageSpots.map((spot, i) => (
-                    <li key={i} className="rounded-2xl bg-white p-5 shadow-md">
+                    <li key={i} className="rounded-2xl bg-white p-5 shadow-sm">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base font-bold text-gray-800">{spot.name}</h3>

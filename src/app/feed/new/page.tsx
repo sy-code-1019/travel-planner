@@ -51,8 +51,8 @@ export default function FeedNewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-3">
           <Link href="/plans" className="text-gray-500 hover:text-gray-700">
             <ChevronLeft className="h-5 w-5" />
@@ -63,7 +63,7 @@ export default function FeedNewPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

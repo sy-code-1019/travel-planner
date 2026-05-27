@@ -59,23 +59,30 @@ function SpotSearchModal({
   onSelect: (name: string) => void
   onClose: () => void
 }) {
-  const [region, setRegion] = useState('')
-  const [prefecture, setPrefecture] = useState('')
   const [purposes, setPurposes] = useState<TravelPurpose[]>([])
+  const [otherKeyword, setOtherKeyword] = useState('')
+  const [region, setRegion] = useState('')
+  const [area, setArea] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [phase, setPhase] = useState<'form' | 'results'>('form')
   const [page, setPage] = useState(0)
   const PAGE_SIZE = 15
 
+  const canSearch =
+    purposes.length > 0 || otherKeyword.trim() !== '' || region !== '' || area.trim() !== ''
+
   async function handleSearch() {
-    if (!prefecture) return
+    if (!canSearch) return
     setLoading(true)
     setPhase('results')
     setPage(0)
     try {
-      const query = new URLSearchParams({ prefecture, purposes: purposes.join(',') })
-      const res = await fetch(`/api/places?${query}`)
+      const allPurposes = otherKeyword.trim() ? [...purposes, otherKeyword.trim()] : [...purposes]
+      const params = new URLSearchParams({ purposes: allPurposes.join(',') })
+      if (area.trim()) params.set('area', area.trim())
+      else if (region) params.set('region', region)
+      const res = await fetch(`/api/places?${params}`)
       const data = (await res.json()) as { spots?: SearchResult[] }
       setResults(data.spots ?? [])
     } catch {
@@ -108,79 +115,75 @@ function SpotSearchModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-4 space-y-4">
+        <div className="overflow-y-auto flex-1 p-4 space-y-5">
           {phase === 'form' ? (
             <>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">エリア</p>
-                <div className="grid grid-cols-2 gap-1.5">
+                <p className="text-xs font-medium text-gray-500 mb-2">何をしたいですか？（任意）</p>
+                <div className="flex flex-wrap gap-2">
+                  {PURPOSES.map(({ value, emoji }) => {
+                    const selected = purposes.includes(value)
+                    return (
+                      <button
+                        key={value}
+                        onClick={() =>
+                          setPurposes((prev) =>
+                            selected ? prev.filter((p) => p !== value) : [...prev, value]
+                          )
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs border-2 transition-all ${
+                          selected
+                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-blue-200'
+                        }`}
+                      >
+                        {emoji} {value}
+                      </button>
+                    )
+                  })}
+                </div>
+                <input
+                  type="text"
+                  value={otherKeyword}
+                  onChange={(e) => setOtherKeyword(e.target.value)}
+                  placeholder="その他（例：サウナ、公園、水族館）"
+                  className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-2">どこへ行きますか？（任意）</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
                   {Object.keys(REGIONS).map((r) => (
                     <button
                       key={r}
                       onClick={() => {
-                        setRegion(r)
-                        setPrefecture('')
+                        setRegion(region === r ? '' : r)
+                        setArea('')
                       }}
-                      className={`rounded-lg py-2 text-sm border-2 transition-all ${
+                      className={`rounded-full px-3 py-1 text-xs border-2 transition-all ${
                         region === r
                           ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                          : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-blue-200'
+                          : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-blue-200'
                       }`}
                     >
                       {r}
                     </button>
                   ))}
                 </div>
+                <input
+                  type="text"
+                  value={area}
+                  onChange={(e) => {
+                    setArea(e.target.value)
+                    if (e.target.value) setRegion('')
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="市区町村で絞り込む（例：横浜、渋谷）"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+                <p className="text-xs text-gray-400 mt-1.5">いずれか一つ以上入力で検索できます</p>
               </div>
-
-              {region && (
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2">都道府県</p>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {REGIONS[region].map((pref) => (
-                      <button
-                        key={pref}
-                        onClick={() => setPrefecture(pref)}
-                        className={`rounded-lg py-2 text-xs border-2 transition-all ${
-                          prefecture === pref
-                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                            : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-blue-200'
-                        }`}
-                      >
-                        {pref}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {prefecture && (
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2">目的（任意・複数選択可）</p>
-                  <div className="flex flex-wrap gap-2">
-                    {PURPOSES.map(({ value, emoji }) => {
-                      const selected = purposes.includes(value)
-                      return (
-                        <button
-                          key={value}
-                          onClick={() =>
-                            setPurposes((prev) =>
-                              selected ? prev.filter((p) => p !== value) : [...prev, value]
-                            )
-                          }
-                          className={`rounded-full px-3 py-1.5 text-xs border-2 transition-all ${
-                            selected
-                              ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                              : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-blue-200'
-                          }`}
-                        >
-                          {emoji} {value}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </>
           ) : loading ? (
             <div className="py-10 flex flex-col items-center gap-3">
@@ -255,11 +258,11 @@ function SpotSearchModal({
         {phase === 'form' && (
           <div className="p-4 border-t flex-shrink-0">
             <button
-              disabled={!prefecture}
+              disabled={!canSearch}
               onClick={handleSearch}
               className="w-full rounded-xl bg-blue-500 py-3 text-sm font-bold text-white hover:bg-blue-600 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
             >
-              <Search className="h-4 w-4" /> このエリアで検索
+              <Search className="h-4 w-4" /> スポットを検索する
             </button>
           </div>
         )}
@@ -382,7 +385,7 @@ export default function NewPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {searchTarget && (
         <SpotSearchModal
           onSelect={(name) => {
@@ -393,7 +396,7 @@ export default function NewPlanPage() {
         />
       )}
 
-      <header className="bg-white shadow-sm">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -414,7 +417,7 @@ export default function NewPlanPage() {
       <main className="mx-auto max-w-2xl px-4 py-8 space-y-4">
         {/* Step 0: タイトル */}
         {step === 0 && (
-          <div className="rounded-2xl bg-white p-6 shadow-md space-y-5">
+          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-5">
             <h2 className="text-xl font-bold text-gray-800">旅のタイトルをつけよう</h2>
             <input
               type="text"
@@ -435,7 +438,7 @@ export default function NewPlanPage() {
 
         {/* Step 1: 日程・時間 */}
         {step === 1 && (
-          <div className="rounded-2xl bg-white p-6 shadow-md space-y-5">
+          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-5">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-500" />
               日程を決めよう
@@ -488,7 +491,7 @@ export default function NewPlanPage() {
         {/* Step 2: しおり */}
         {step === 2 && (
           <div className="space-y-4">
-            <div className="rounded-2xl bg-white p-4 shadow-md">
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800">✈️ 旅のしおりを作ろう</h2>
               <p className="text-sm text-gray-500 mt-1">
                 各スポットの「おすすめ」ボタンからGoogle Maps評価順でスポットを探せます
@@ -496,9 +499,12 @@ export default function NewPlanPage() {
             </div>
 
             {itinerary.map((day, dayIdx) => (
-              <div key={day.date} className="rounded-2xl bg-white shadow-md overflow-hidden">
-                <div className="bg-blue-500 px-4 py-3">
-                  <p className="font-bold text-white">
+              <div key={day.date} className="rounded-2xl bg-white shadow-sm overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
+                    {dayIdx + 1}
+                  </span>
+                  <p className="font-semibold text-gray-700">
                     Day {dayIdx + 1}　{formatDateJP(day.date)}
                   </p>
                 </div>
