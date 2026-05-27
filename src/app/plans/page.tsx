@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { MapPin, PlusCircle, BookOpen, Send, Users, LogIn, LogOut } from 'lucide-react'
+import { MapPin, PlusCircle, BookOpen, Send, Users, LogIn, LogOut, Sparkles } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 const menuItems = [
@@ -38,6 +38,15 @@ const menuItems = [
     label: 'みんなの投稿を見る',
     description: '他のユーザーの旅行プランを閲覧',
     color: 'bg-orange-500 hover:bg-orange-600',
+    enabled: true,
+    requireAuth: false,
+  },
+  {
+    href: '/events',
+    icon: Sparkles,
+    label: '今月・来月のイベント',
+    description: '祭り・花火・花など開催中のイベントを確認',
+    color: 'bg-rose-500 hover:bg-rose-600',
     enabled: true,
     requireAuth: false,
   },
