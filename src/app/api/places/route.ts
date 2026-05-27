@@ -139,7 +139,10 @@ export async function GET(request: Request) {
     purposes.length > 0
       ? purposes.flatMap((p) => {
           const keywords = PURPOSE_KEYWORDS[p]
-          return keywords ? keywords.map((kw) => buildQuery(kw)) : [buildQuery(p)]
+          if (keywords) return keywords.map((kw) => buildQuery(kw))
+          // カスタムキーワードはGoogleが1ページで打ち切ることが多いため、
+          // バリエーションを3つ生成して結果数を増やす
+          return [buildQuery(p), buildQuery(`${p} 人気`), buildQuery(`${p} おすすめ`)]
         })
       : [buildQuery('観光スポット'), buildQuery('名所'), buildQuery('神社 寺院')]
 

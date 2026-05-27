@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -68,6 +68,7 @@ function SpotSearchModal({
   const [phase, setPhase] = useState<'form' | 'results'>('form')
   const [page, setPage] = useState(0)
   const PAGE_SIZE = 15
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const canSearch =
     purposes.length > 0 || otherKeyword.trim() !== '' || region !== '' || area.trim() !== ''
@@ -115,7 +116,7 @@ function SpotSearchModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-4 space-y-5">
+        <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 space-y-5">
           {phase === 'form' ? (
             <>
               <div>
@@ -234,7 +235,10 @@ function SpotSearchModal({
                 <div className="flex items-center justify-between pt-2">
                   <button
                     disabled={page === 0}
-                    onClick={() => setPage((p) => p - 1)}
+                    onClick={() => {
+                      setPage((p) => p - 1)
+                      scrollRef.current?.scrollTo(0, 0)
+                    }}
                     className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 disabled:opacity-30 transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4" /> 前へ
@@ -244,7 +248,10 @@ function SpotSearchModal({
                   </span>
                   <button
                     disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
+                    onClick={() => {
+                      setPage((p) => p + 1)
+                      scrollRef.current?.scrollTo(0, 0)
+                    }}
                     className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 disabled:opacity-30 transition-colors"
                   >
                     次へ <ArrowRight className="h-4 w-4" />
