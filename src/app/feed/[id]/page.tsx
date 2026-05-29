@@ -20,6 +20,7 @@ import {
 import {
   doc,
   getDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   increment,
@@ -136,10 +137,10 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
     setFollowLoading(true)
     const userRef = doc(db, 'users', user.uid)
     if (followed) {
-      await updateDoc(userRef, { following: arrayRemove(post!.authorId) })
+      await setDoc(userRef, { following: arrayRemove(post!.authorId) }, { merge: true })
       setFollowed(false)
     } else {
-      await updateDoc(userRef, { following: arrayUnion(post!.authorId) })
+      await setDoc(userRef, { following: arrayUnion(post!.authorId) }, { merge: true })
       setFollowed(true)
     }
     setFollowLoading(false)
