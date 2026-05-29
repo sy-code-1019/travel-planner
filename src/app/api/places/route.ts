@@ -29,6 +29,7 @@ const KEYWORD_TO_TYPES: Record<string, string[]> = {
   ビーチ: ['natural_feature'],
   海: ['natural_feature'],
   山: ['natural_feature'],
+  グルメ: ['restaurant', 'food', 'cafe', 'bakery', 'meal_takeaway', 'meal_delivery'],
 }
 
 interface GooglePlace {
