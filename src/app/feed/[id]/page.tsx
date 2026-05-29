@@ -261,6 +261,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             {!isOwn && user && (
               <button
+                data-testid="follow-button"
                 onClick={handleFollow}
                 disabled={followLoading}
                 className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
@@ -319,6 +320,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <button
+                data-testid="like-button"
                 onClick={handleLike}
                 disabled={!user || likeLoading}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
@@ -332,6 +334,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
               </button>
               {user && (
                 <button
+                  data-testid="bookmark-button"
                   onClick={handleBookmark}
                   disabled={bookmarkLoading}
                   className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 ${
@@ -351,6 +354,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             {user && (
               <button
+                data-testid="copy-button"
                 onClick={handleDuplicate}
                 className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors"
               >

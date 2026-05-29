@@ -161,6 +161,7 @@ export default function FeedPage() {
             ).map(({ key, label }) => (
               <button
                 key={key}
+                data-testid={`tab-${key}`}
                 onClick={() => setTab(key)}
                 className={`flex items-center gap-1 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                   tab === key
