@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { MapPin, CalendarDays, Compass, Plus } from 'lucide-react'
-import { collection, getDocs, orderBy, query } from 'firebase/firestore'
+import { MapPin, CalendarDays, Compass, Plus, Search, X, Heart } from 'lucide-react'
+import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import type { PlannedPlan } from '@/types/plan'
@@ -16,6 +16,8 @@ interface Post {
   comment: string
   plan: PlannedPlan
   createdAt: number
+  likeCount?: number
+  likedBy?: string[]
 }
 
 const CARD_GRADIENTS = [
@@ -68,7 +70,22 @@ export default function FeedPage() {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'all' | 'mine'>('all')
+  const [tab, setTab] = useState<'all' | 'following' | 'mine'>('all')
+  const [search, setSearch] = useState('')
+  const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    async function fetchFollows() {
+      if (!user) {
+        setFollowedIds(new Set())
+        return
+      }
+      const snap = await getDoc(doc(db, 'users', user.uid))
+      const following: string[] = snap.data()?.following ?? []
+      setFollowedIds(new Set(following))
+    }
+    fetchFollows()
+  }, [user])
 
   useEffect(() => {
     async function fetchPosts() {
@@ -80,7 +97,26 @@ export default function FeedPage() {
     fetchPosts()
   }, [])
 
-  const displayed = tab === 'mine' ? posts.filter((p) => p.authorId === user?.uid) : posts
+  const tabFiltered =
+    tab === 'mine'
+      ? posts.filter((p) => p.authorId === user?.uid)
+      : tab === 'following'
+        ? posts.filter((p) => followedIds.has(p.authorId))
+        : posts
+
+  const displayed = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return tabFiltered
+    return tabFiltered.filter((p) => {
+      const places = collectPlaces(p.plan).join(' ')
+      return (
+        p.title.toLowerCase().includes(q) ||
+        p.comment.toLowerCase().includes(q) ||
+        p.authorName.toLowerCase().includes(q) ||
+        places.toLowerCase().includes(q)
+      )
+    })
+  }, [tabFiltered, search])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,21 +146,49 @@ export default function FeedPage() {
         {/* タブ */}
         {user && (
           <div className="mx-auto max-w-2xl px-4 flex gap-0 border-t border-gray-100">
-            {(['all', 'mine'] as const).map((t) => (
+            {(
+              [
+                { key: 'all', label: 'すべて' },
+                { key: 'following', label: 'フォロー中' },
+                { key: 'mine', label: '自分の投稿' },
+              ] as const
+            ).map(({ key, label }) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
+                key={key}
+                onClick={() => setTab(key)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t
+                  tab === key
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {t === 'all' ? 'すべて' : '自分の投稿'}
+                {label}
               </button>
             ))}
           </div>
         )}
+
+        {/* 検索バー */}
+        <div className="mx-auto max-w-2xl px-4 pb-3 pt-2 border-t border-gray-100">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="タイトル・行き先・投稿者で検索"
+              className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-9 pr-9 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6">
@@ -143,7 +207,9 @@ export default function FeedPage() {
         ) : displayed.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <Compass className="mx-auto h-12 w-12 mb-3 opacity-30" />
-            <p className="text-sm">まだ投稿がありません</p>
+            <p className="text-sm">
+              {search ? '該当する投稿が見つかりません' : 'まだ投稿がありません'}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -199,9 +265,15 @@ export default function FeedPage() {
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.comment}</p>
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <Avatar name={post.authorName} />
-                      <span className="text-xs text-gray-500">{post.authorName}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={post.authorName} />
+                        <span className="text-xs text-gray-500">{post.authorName}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-rose-400">
+                        <Heart className="h-3.5 w-3.5 fill-current" />
+                        <span className="text-xs font-medium">{post.likeCount ?? 0}</span>
+                      </div>
                     </div>
                   </div>
                 </Link>

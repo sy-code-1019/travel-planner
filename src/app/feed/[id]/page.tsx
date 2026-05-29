@@ -13,8 +13,19 @@ import {
   Check,
   X,
   Home,
+  Heart,
+  UserPlus,
+  UserCheck,
 } from 'lucide-react'
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  increment,
+  arrayUnion,
+  arrayRemove,
+} from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import type { PlannedPlan } from '@/types/plan'
@@ -27,6 +38,8 @@ interface Post {
   comment: string
   plan: PlannedPlan
   createdAt: number
+  likeCount?: number
+  likedBy?: string[]
 }
 
 const CARD_GRADIENTS = [
@@ -68,6 +81,11 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
   const [editComment, setEditComment] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
+  const [likeLoading, setLikeLoading] = useState(false)
+  const [followed, setFollowed] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
 
   useEffect(() => {
     async function fetchPost() {
@@ -76,11 +94,56 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
         const data = { id: snap.id, ...snap.data() } as Post
         setPost(data)
         setEditComment(data.comment)
+        setLikeCount(data.likeCount ?? 0)
       }
       setLoading(false)
     }
     fetchPost()
   }, [id])
+
+  useEffect(() => {
+    if (!post || !user) return
+    async function fetchStatus() {
+      setLiked((post!.likedBy ?? []).includes(user!.uid))
+      if (post!.authorId !== user!.uid) {
+        const snap = await getDoc(doc(db, 'users', user!.uid))
+        const following: string[] = snap.data()?.following ?? []
+        setFollowed(following.includes(post!.authorId))
+      }
+    }
+    fetchStatus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.id, user?.uid])
+
+  async function handleLike() {
+    if (!user || likeLoading) return
+    setLikeLoading(true)
+    const postRef = doc(db, 'posts', id)
+    if (liked) {
+      await updateDoc(postRef, { likedBy: arrayRemove(user.uid), likeCount: increment(-1) })
+      setLiked(false)
+      setLikeCount((c) => c - 1)
+    } else {
+      await updateDoc(postRef, { likedBy: arrayUnion(user.uid), likeCount: increment(1) })
+      setLiked(true)
+      setLikeCount((c) => c + 1)
+    }
+    setLikeLoading(false)
+  }
+
+  async function handleFollow() {
+    if (!user || followLoading) return
+    setFollowLoading(true)
+    const userRef = doc(db, 'users', user.uid)
+    if (followed) {
+      await updateDoc(userRef, { following: arrayRemove(post!.authorId) })
+      setFollowed(false)
+    } else {
+      await updateDoc(userRef, { following: arrayUnion(post!.authorId) })
+      setFollowed(true)
+    }
+    setFollowLoading(false)
+  }
 
   async function handleSave() {
     if (!post) return
@@ -119,7 +182,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヒーローヘッダー */}
-      <div className={`bg-gradient-to-br ${gradient} pt-12 pb-16 px-4 relative`}>
+      <div className={`bg-gradient-to-br ${gradient} pt-12 pb-8 px-4 relative`}>
         <Link
           href="/feed"
           className="absolute top-4 left-4 rounded-full bg-white/20 p-1.5 text-white hover:bg-white/30 transition-colors"
@@ -156,7 +219,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      <main className="mx-auto max-w-2xl px-4 -mt-8 pb-12 space-y-4">
+      <main className="mx-auto max-w-2xl px-4 mt-4 pb-12 space-y-4 relative">
         {/* 投稿者・コメントカード */}
         <div className="rounded-2xl bg-white shadow-sm p-5">
           <div className="flex items-center justify-between gap-3">
@@ -164,6 +227,24 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
               <Avatar name={post.authorName} />
               <span className="text-sm font-medium text-gray-700">{post.authorName}</span>
             </div>
+            {!isOwn && user && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                  followed
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {followed ? (
+                  <UserCheck className="h-3.5 w-3.5" />
+                ) : (
+                  <UserPlus className="h-3.5 w-3.5" />
+                )}
+                {followed ? 'フォロー中' : 'フォロー'}
+              </button>
+            )}
           </div>
 
           {editing ? (
@@ -201,6 +282,23 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
               {post.comment}
             </p>
           ) : null}
+
+          {/* いいねボタン */}
+          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+            <button
+              onClick={handleLike}
+              disabled={!user || likeLoading}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                liked
+                  ? 'text-rose-500 bg-rose-50'
+                  : 'text-gray-400 hover:text-rose-400 hover:bg-rose-50'
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+              <span>{likeCount}</span>
+            </button>
+            {!user && <span className="text-xs text-gray-400">ログインするといいねできます</span>}
+          </div>
         </div>
 
         {/* 削除確認 */}
