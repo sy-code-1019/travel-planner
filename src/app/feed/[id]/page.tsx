@@ -16,6 +16,9 @@ import {
   Heart,
   UserPlus,
   UserCheck,
+  Bookmark,
+  BookmarkCheck,
+  Copy,
 } from 'lucide-react'
 import {
   doc,
@@ -29,6 +32,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
+import { savePlan } from '@/lib/storage'
 import type { PlannedPlan } from '@/types/plan'
 
 interface Post {
@@ -87,6 +91,8 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
   const [likeLoading, setLikeLoading] = useState(false)
   const [followed, setFollowed] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
 
   useEffect(() => {
     async function fetchPost() {
@@ -106,11 +112,14 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
     if (!post || !user) return
     async function fetchStatus() {
       setLiked((post!.likedBy ?? []).includes(user!.uid))
+      const snap = await getDoc(doc(db, 'users', user!.uid))
+      const data = snap.data()
+      const following: string[] = data?.following ?? []
+      const bookmarks: string[] = data?.bookmarks ?? []
       if (post!.authorId !== user!.uid) {
-        const snap = await getDoc(doc(db, 'users', user!.uid))
-        const following: string[] = snap.data()?.following ?? []
         setFollowed(following.includes(post!.authorId))
       }
+      setBookmarked(bookmarks.includes(post!.id))
     }
     fetchStatus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +139,28 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
       setLikeCount((c) => c + 1)
     }
     setLikeLoading(false)
+  }
+
+  async function handleBookmark() {
+    if (!user || bookmarkLoading) return
+    setBookmarkLoading(true)
+    const userRef = doc(db, 'users', user.uid)
+    if (bookmarked) {
+      await setDoc(userRef, { bookmarks: arrayRemove(post!.id) }, { merge: true })
+      setBookmarked(false)
+    } else {
+      await setDoc(userRef, { bookmarks: arrayUnion(post!.id) }, { merge: true })
+      setBookmarked(true)
+    }
+    setBookmarkLoading(false)
+  }
+
+  function handleDuplicate() {
+    if (!user || !post) return
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, createdAt: _createdAt, ...planInput } = post.plan
+    const newPlan = savePlan(planInput)
+    router.push(`/plans/${newPlan.id}/edit`)
   }
 
   async function handleFollow() {
@@ -284,21 +315,49 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
             </p>
           ) : null}
 
-          {/* いいねボタン */}
-          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-            <button
-              onClick={handleLike}
-              disabled={!user || likeLoading}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                liked
-                  ? 'text-rose-500 bg-rose-50'
-                  : 'text-gray-400 hover:text-rose-400 hover:bg-rose-50'
-              }`}
-            >
-              <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-              <span>{likeCount}</span>
-            </button>
-            {!user && <span className="text-xs text-gray-400">ログインするといいねできます</span>}
+          {/* アクションバー */}
+          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleLike}
+                disabled={!user || likeLoading}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  liked
+                    ? 'text-rose-500 bg-rose-50'
+                    : 'text-gray-400 hover:text-rose-400 hover:bg-rose-50'
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                <span>{likeCount}</span>
+              </button>
+              {user && (
+                <button
+                  onClick={handleBookmark}
+                  disabled={bookmarkLoading}
+                  className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-40 ${
+                    bookmarked
+                      ? 'text-amber-500 bg-amber-50'
+                      : 'text-gray-400 hover:text-amber-400 hover:bg-amber-50'
+                  }`}
+                >
+                  {bookmarked ? (
+                    <BookmarkCheck className="h-4 w-4 fill-current" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                </button>
+              )}
+              {!user && <span className="text-xs text-gray-400">ログインするといいねできます</span>}
+            </div>
+            {user && (
+              <button
+                onClick={handleDuplicate}
+                className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                コピーして使う
+              </button>
+            )}
           </div>
         </div>
 

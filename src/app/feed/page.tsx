@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { MapPin, CalendarDays, Compass, Plus, Search, X, Heart } from 'lucide-react'
+import { MapPin, CalendarDays, Compass, Plus, Search, X, Heart, Bookmark } from 'lucide-react'
 import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
@@ -70,21 +70,24 @@ export default function FeedPage() {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'all' | 'following' | 'mine'>('all')
+  const [tab, setTab] = useState<'all' | 'following' | 'bookmarks' | 'mine'>('all')
   const [search, setSearch] = useState('')
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    async function fetchFollows() {
+    async function fetchUserData() {
       if (!user) {
         setFollowedIds(new Set())
+        setBookmarkedIds(new Set())
         return
       }
       const snap = await getDoc(doc(db, 'users', user.uid))
-      const following: string[] = snap.data()?.following ?? []
-      setFollowedIds(new Set(following))
+      const data = snap.data()
+      setFollowedIds(new Set(data?.following ?? []))
+      setBookmarkedIds(new Set(data?.bookmarks ?? []))
     }
-    fetchFollows()
+    fetchUserData()
   }, [user])
 
   useEffect(() => {
@@ -102,7 +105,9 @@ export default function FeedPage() {
       ? posts.filter((p) => p.authorId === user?.uid)
       : tab === 'following'
         ? posts.filter((p) => followedIds.has(p.authorId))
-        : posts
+        : tab === 'bookmarks'
+          ? posts.filter((p) => bookmarkedIds.has(p.id))
+          : posts
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -150,18 +155,20 @@ export default function FeedPage() {
               [
                 { key: 'all', label: 'すべて' },
                 { key: 'following', label: 'フォロー中' },
+                { key: 'bookmarks', label: 'ブックマーク' },
                 { key: 'mine', label: '自分の投稿' },
               ] as const
             ).map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex items-center gap-1 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                   tab === key
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
+                {key === 'bookmarks' && <Bookmark className="h-3.5 w-3.5" />}
                 {label}
               </button>
             ))}
