@@ -46,10 +46,10 @@ export interface PlaceCandidate {
   types?: string[]
 }
 
-export function filterByRelevantTypes(
-  places: PlaceCandidate[],
+export function filterByRelevantTypes<T extends PlaceCandidate>(
+  places: T[],
   purposes: string[]
-): PlaceCandidate[] {
+): T[] {
   const relevantTypes = purposes.flatMap((p) => KEYWORD_TO_TYPES[p] ?? [])
   if (relevantTypes.length === 0) return places
   return places.filter(
