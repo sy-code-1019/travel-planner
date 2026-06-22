@@ -33,48 +33,9 @@ import {
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { savePlan } from '@/lib/storage'
-import type { PlannedPlan } from '@/types/plan'
-
-interface Post {
-  id: string
-  authorId: string
-  authorName: string
-  title: string
-  comment: string
-  plan: PlannedPlan
-  createdAt: number
-  likeCount?: number
-  likedBy?: string[]
-}
-
-const CARD_GRADIENTS = [
-  'from-sky-400 to-blue-600',
-  'from-violet-400 to-purple-600',
-  'from-emerald-400 to-teal-600',
-  'from-orange-400 to-rose-500',
-  'from-pink-400 to-fuchsia-600',
-  'from-amber-400 to-orange-500',
-]
-
-function gradientFor(str: string) {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length]
-}
-
-function Avatar({ name }: { name: string }) {
-  const colors = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500']
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  const color = colors[Math.abs(hash) % colors.length]
-  return (
-    <span
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${color} text-sm font-bold text-white`}
-    >
-      {name.charAt(0)}
-    </span>
-  )
-}
+import { gradientFor } from '@/lib/feed-utils'
+import { Avatar } from '@/components/Avatar'
+import type { Post } from '@/types/post'
 
 export default function FeedDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -128,31 +89,41 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
   async function handleLike() {
     if (!user || likeLoading) return
     setLikeLoading(true)
-    const postRef = doc(db, 'posts', id)
-    if (liked) {
-      await updateDoc(postRef, { likedBy: arrayRemove(user.uid), likeCount: increment(-1) })
-      setLiked(false)
-      setLikeCount((c) => c - 1)
-    } else {
-      await updateDoc(postRef, { likedBy: arrayUnion(user.uid), likeCount: increment(1) })
-      setLiked(true)
-      setLikeCount((c) => c + 1)
+    try {
+      const postRef = doc(db, 'posts', id)
+      if (liked) {
+        await updateDoc(postRef, { likedBy: arrayRemove(user.uid), likeCount: increment(-1) })
+        setLiked(false)
+        setLikeCount((c) => c - 1)
+      } else {
+        await updateDoc(postRef, { likedBy: arrayUnion(user.uid), likeCount: increment(1) })
+        setLiked(true)
+        setLikeCount((c) => c + 1)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLikeLoading(false)
     }
-    setLikeLoading(false)
   }
 
   async function handleBookmark() {
     if (!user || bookmarkLoading) return
     setBookmarkLoading(true)
-    const userRef = doc(db, 'users', user.uid)
-    if (bookmarked) {
-      await setDoc(userRef, { bookmarks: arrayRemove(post!.id) }, { merge: true })
-      setBookmarked(false)
-    } else {
-      await setDoc(userRef, { bookmarks: arrayUnion(post!.id) }, { merge: true })
-      setBookmarked(true)
+    try {
+      const userRef = doc(db, 'users', user.uid)
+      if (bookmarked) {
+        await setDoc(userRef, { bookmarks: arrayRemove(post!.id) }, { merge: true })
+        setBookmarked(false)
+      } else {
+        await setDoc(userRef, { bookmarks: arrayUnion(post!.id) }, { merge: true })
+        setBookmarked(true)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setBookmarkLoading(false)
     }
-    setBookmarkLoading(false)
   }
 
   function handleDuplicate() {
@@ -166,15 +137,20 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
   async function handleFollow() {
     if (!user || followLoading) return
     setFollowLoading(true)
-    const userRef = doc(db, 'users', user.uid)
-    if (followed) {
-      await setDoc(userRef, { following: arrayRemove(post!.authorId) }, { merge: true })
-      setFollowed(false)
-    } else {
-      await setDoc(userRef, { following: arrayUnion(post!.authorId) }, { merge: true })
-      setFollowed(true)
+    try {
+      const userRef = doc(db, 'users', user.uid)
+      if (followed) {
+        await setDoc(userRef, { following: arrayRemove(post!.authorId) }, { merge: true })
+        setFollowed(false)
+      } else {
+        await setDoc(userRef, { following: arrayUnion(post!.authorId) }, { merge: true })
+        setFollowed(true)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setFollowLoading(false)
     }
-    setFollowLoading(false)
   }
 
   async function handleSave() {
@@ -256,7 +232,7 @@ export default function FeedDetailPage({ params }: { params: Promise<{ id: strin
         <div className="rounded-2xl bg-white shadow-sm p-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <Avatar name={post.authorName} />
+              <Avatar name={post.authorName} size="md" />
               <span className="text-sm font-medium text-gray-700">{post.authorName}</span>
             </div>
             {!isOwn && user && (
