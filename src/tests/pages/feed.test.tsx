@@ -14,6 +14,8 @@ vi.mock('firebase/firestore', () => ({
   getDocs: vi.fn(),
   orderBy: vi.fn(() => ({})),
   query: vi.fn(() => ({})),
+  limit: vi.fn(() => ({})),
+  startAfter: vi.fn(() => ({})),
 }))
 vi.mock('@/lib/auth-context', () => ({ useAuth: vi.fn() }))
 vi.mock('next/link', () => ({

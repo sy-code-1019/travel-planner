@@ -1,39 +1,38 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import { MapPin, CalendarDays, Compass, Plus, Search, X, Heart, Bookmark } from 'lucide-react'
-import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore'
+import {
+  MapPin,
+  CalendarDays,
+  Compass,
+  Plus,
+  Search,
+  X,
+  Heart,
+  Bookmark,
+  Loader2,
+} from 'lucide-react'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  limit,
+  startAfter,
+  type DocumentSnapshot,
+  type QueryConstraint,
+} from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
+import { gradientFor } from '@/lib/feed-utils'
+import { Avatar } from '@/components/Avatar'
+import type { Post } from '@/types/post'
 import type { PlannedPlan } from '@/types/plan'
 
-interface Post {
-  id: string
-  authorId: string
-  authorName: string
-  title: string
-  comment: string
-  plan: PlannedPlan
-  createdAt: number
-  likeCount?: number
-  likedBy?: string[]
-}
-
-const CARD_GRADIENTS = [
-  'from-sky-400 to-blue-600',
-  'from-violet-400 to-purple-600',
-  'from-emerald-400 to-teal-600',
-  'from-orange-400 to-rose-500',
-  'from-pink-400 to-fuchsia-600',
-  'from-amber-400 to-orange-500',
-]
-
-function gradientFor(str: string) {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length]
-}
+const PAGE_SIZE = 20
 
 function calcDays(plan: PlannedPlan) {
   return plan.itinerary.length
@@ -52,24 +51,13 @@ function collectPlaces(plan: PlannedPlan) {
   return places
 }
 
-function Avatar({ name }: { name: string }) {
-  const colors = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500']
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  const color = colors[Math.abs(hash) % colors.length]
-  return (
-    <span
-      className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${color} text-xs font-bold text-white`}
-    >
-      {name.charAt(0)}
-    </span>
-  )
-}
-
 export default function FeedPage() {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null)
+  const [hasMore, setHasMore] = useState(true)
   const [tab, setTab] = useState<'all' | 'following' | 'bookmarks' | 'mine'>('all')
   const [search, setSearch] = useState('')
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
@@ -90,15 +78,33 @@ export default function FeedPage() {
     fetchUserData()
   }, [user])
 
+  const fetchPosts = useCallback(async (after?: DocumentSnapshot) => {
+    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(PAGE_SIZE)]
+    if (after) constraints.push(startAfter(after))
+    const q = query(collection(db, 'posts'), ...constraints)
+    const snap = await getDocs(q)
+    const newPosts = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post)
+    setHasMore(snap.docs.length === PAGE_SIZE)
+    setLastDoc(snap.docs.length > 0 ? snap.docs[snap.docs.length - 1] : null)
+    return newPosts
+  }, [])
+
   useEffect(() => {
-    async function fetchPosts() {
-      const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'))
-      const snap = await getDocs(q)
-      setPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post))
+    async function init() {
+      const newPosts = await fetchPosts()
+      setPosts(newPosts)
       setLoading(false)
     }
-    fetchPosts()
-  }, [])
+    init()
+  }, [fetchPosts])
+
+  async function loadMore() {
+    if (!lastDoc || loadingMore) return
+    setLoadingMore(true)
+    const newPosts = await fetchPosts(lastDoc)
+    setPosts((prev) => [...prev, ...newPosts])
+    setLoadingMore(false)
+  }
 
   const tabFiltered =
     tab === 'mine'
@@ -287,6 +293,25 @@ export default function FeedPage() {
                 </Link>
               )
             })}
+
+            {hasMore && !loading && (
+              <div className="flex justify-center pt-2 pb-4">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="flex items-center gap-2 rounded-full bg-white border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      読み込み中...
+                    </>
+                  ) : (
+                    'もっと見る'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>
